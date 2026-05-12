@@ -42,7 +42,7 @@
 <ul class="slideshow"><li></li><li></li></ul>
 
 <div class="card">
-    <h2>RECUERDA LA UITLMA CRED</h2>
+    <h2>RECno me rendireeeeeeeeee</h2>
     
     <div class="filtros">
         <label>Rango de Fecha:</label>
@@ -91,39 +91,30 @@
         } catch(e) { console.error("Error cargando filtros"); }
     };
 
+    /**
+     * getVal adaptado para las cabeceras exactas de tu Apps Script:
+     * DNI, NOMBRE, FECHA_NACIMIENTO, CELULAR, FECHA_CITA, TURNO, CONSULTORIO, etc.
+     */
     function getVal(obj, search) {
         const keys = Object.keys(obj);
-        // Normalizamos la búsqueda quitando espacios y comillas
-        let key = keys.find(k => k.trim().replace(/'/g, "").toUpperCase() === search.toUpperCase());
         
-        if (!key && search === "FECHA DE CITA") {
-            key = keys.find(k => {
-                const s = k.toUpperCase();
-                return s.includes("CITA") && !s.includes("NACIMIENTO");
-            });
-        }
-        return key ? obj[key] : "";
-    }
+        // Mapeo de búsqueda amigable a nombre técnico del CSV del Script
+        const mapa = {
+            "NOMBRE": "NOMBRE",
+            "CELULAR": "CELULAR",
+            "FECHA DE CITA": "FECHA_CITA",
+            "TURNO": "TURNO",
+            "CONSULTORIO": "CONSULTORIO"
+        };
 
-    function parsearFecha(str) {
-        if (!str) return null;
-        let s = str.toString().replace(/'/g, "").trim();
-        
-        // Manejar formato Excel serial (ej. 45322)
-        if (!isNaN(s) && s.length > 4) {
-            return new Date((s - 25569) * 86400 * 1000);
-        }
+        const campoTecnico = mapa[search] || search;
 
-        let partes = s.split(/[\/\-]/);
-        if (partes.length === 3) {
-            // YYYY-MM-DD
-            if (partes[0].length === 4) return new Date(partes[0], partes[1]-1, partes[2]);
-            // DD/MM/YYYY
-            return new Date(partes[2], partes[1]-1, partes[0]);
-        }
+        // Buscamos la llave ignorando comillas o espacios que el CSV pueda traer
+        let key = keys.find(k => k.trim().replace(/[ '"]/g, "").toUpperCase() === campoTecnico.replace(/_/g, "").toUpperCase() || k.trim().replace(/[ '"]/g, "").toUpperCase() === campoTecnico.toUpperCase());
         
-        let d = new Date(s);
-        return isNaN(d.getTime()) ? null : d;
+        let valor = key ? obj[key] : "";
+        // Limpiamos el valor de las comillas dobles que pone el Apps Script en la exportación
+        return typeof valor === 'string' ? valor.replace(/"/g, "").trim() : valor;
     }
 
     async function cargarDatos() {
@@ -138,7 +129,8 @@
         btn.disabled = true;
 
         try {
-            const url = `${SCRIPT_URL}?exportar=true&cons=${encodeURIComponent(consSel)}`;
+            // Enviamos desde y hasta, que es como lo espera tu Apps Script
+            const url = `${SCRIPT_URL}?exportar=true&desde=${fIniStr}&hasta=${fFinStr}&cons=${encodeURIComponent(consSel)}`;
             const resp = await fetch(url);
             const csvText = await resp.text();
 
@@ -147,21 +139,15 @@
                 skipEmptyLines: true,
                 complete: function(results) {
                     const turnoSel = document.getElementById('filtroTurno').value;
-                    const dInicio = new Date(fIniStr + "T00:00:00");
-                    const dFin = new Date(fFinStr + "T23:59:59");
 
+                    // El filtrado por fecha ya lo hizo el servidor (Apps Script),
+                    // aquí solo filtramos turno y limpiamos la lista.
                     pacientesGlobal = results.data.filter(p => {
-                        const fechaRaw = getVal(p, "FECHA DE CITA");
-                        const fechaPaciente = parsearFecha(fechaRaw);
-                        if (!fechaPaciente) return false;
-
-                        const turnoP = (getVal(p, "TURNO") || "").toUpperCase().trim();
+                        const turnoP = (getVal(p, "TURNO") || "").toUpperCase();
                         const cel = (getVal(p, "CELULAR") || "").toString().replace(/\D/g, "");
-
-                        const cumpleFecha = (fechaPaciente >= dInicio && fechaPaciente <= dFin);
                         const cumpleTurno = (turnoSel === "TODOS" || turnoP.includes(turnoSel));
                         
-                        return cel.length >= 9 && cumpleFecha && cumpleTurno;
+                        return cel.length >= 9 && cumpleTurno;
                     });
 
                     indiceActual = 0;
@@ -170,11 +156,12 @@
                     mostrarLista();
                     prepararSiguiente();
                     
-                    if(pacientesGlobal.length === 0) alert("No se encontraron citados en este rango.");
+                    if(pacientesGlobal.length === 0) alert("No se encontraron citados para este rango/consultorio.");
                 }
             });
         } catch (err) {
-            alert("Error de conexión");
+            console.error(err);
+            alert("Error de conexión con el servidor");
             btn.disabled = false;
         }
     }
@@ -207,6 +194,7 @@
         let cel = (getVal(p, "CELULAR") || "").toString().replace(/\D/g, "");
         if (cel.length === 9) cel = "51" + cel;
         const extra = document.getElementById('msgAdicional').value.trim();
+        // Nota: se usa FECHA DE CITA que getVal traduce a FECHA_CITA del CSV
         const msg = `Hola, le saludamos del Centro de Salud *Castillo Grande*. Le recordamos la cita de *${getVal(p, "NOMBRE")}* para el día *${getVal(p, "FECHA DE CITA")}* en el turno *${getVal(p, "TURNO")}* (${getVal(p, "CONSULTORIO")}). Por favor, acuda puntualmente.${extra ? '\n\n📌 *Nota:* ' + extra : ''}`;
         return `https://api.whatsapp.com/send?phone=${cel}&text=${encodeURIComponent(msg)}`;
     }
