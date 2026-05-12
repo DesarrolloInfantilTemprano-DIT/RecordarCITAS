@@ -90,12 +90,12 @@
     let pacientesGlobal = [];
     let indiceActual = 0;
 
-    // 1. CARGA DINÁMICA DE CONSULTORIOS AL ABRIR LA WEB
+    // 1. CARGA DINÁMICA DE CONSULTORIOS
     window.onload = async () => {
+        const select = document.getElementById('filtroConsultorio');
         try {
             const resp = await fetch(`${SCRIPT_URL}?getFiltros=true`);
             const data = await resp.json();
-            const select = document.getElementById('filtroConsultorio');
             select.innerHTML = '<option value="TODOS">-- TODOS LOS CONSULTORIOS --</option>';
             if(data.consultorios && data.consultorios.length > 0) {
                 data.consultorios.forEach(c => {
@@ -103,11 +103,12 @@
                 });
             }
         } catch(e) {
-            document.getElementById('filtroConsultorio').innerHTML = '<option value="TODOS">ERROR: REVISA PERMISOS SCRIPT</option>';
+            select.innerHTML = '<option value="TODOS">-- TODOS LOS CONSULTORIOS --</option>';
+            console.error("Error cargando filtros:", e);
         }
     };
 
-    // 2. PETICIÓN DE DATOS
+    // 2. PETICIÓN DE DATOS (Mapeo basado en tu Script: DNI, NOMBRE, CELULAR, FECHA_CITA...)
     async function cargarDatos() {
         const btn = document.querySelector('.btn-main');
         const fIni = document.getElementById('fechaInicio').value;
@@ -130,9 +131,10 @@
                 complete: function(results) {
                     const turnoSel = document.getElementById('filtroTurno').value;
 
+                    // Ajuste de filtros según los nombres exactos de tu Script
                     pacientesGlobal = results.data.filter(p => {
-                        const t = (p.TURNO || p['TURNO'] || "").toUpperCase().trim();
-                        const cel = p.CELULAR || p['CELULAR'];
+                        const t = (p.TURNO || "").toUpperCase().trim();
+                        const cel = p.CELULAR;
                         return cel && (turnoSel === "TODOS" || t === turnoSel);
                     });
 
@@ -151,17 +153,17 @@
         }
     }
 
-    // 3. MOSTRAR PACIENTES
+    // 3. MOSTRAR PACIENTES (Uso de FECHA_CITA según tu Script)
     function mostrarLista() {
         const div = document.getElementById('lista');
         document.getElementById('contador').innerText = `PACIENTES ENCONTRADOS: ${pacientesGlobal.length}`;
         div.innerHTML = "";
         
         pacientesGlobal.forEach((p, i) => {
-            const nombreP = p.NOMBRE || p['NOMBRE'] || "Sin Nombre";
-            const fechaP = p['FECHA DE CITA'] || p['FECHA_CITA'] || "---";
-            const turnoP = p.TURNO || p['TURNO'] || "";
-            const consultorioP = p.CONSULTORIO || p['CONSULTORIO'] || "";
+            const nombreP = p.NOMBRE || "Sin Nombre";
+            const fechaP = p.FECHA_CITA || "---";
+            const turnoP = p.TURNO || "";
+            const consultorioP = p.CONSULTORIO || "";
 
             const item = document.createElement('div');
             item.className = 'tarjeta';
@@ -181,17 +183,17 @@
         });
     }
 
-    // 4. GENERACIÓN DE MENSAJE PERSONALIZADO
+    // 4. GENERACIÓN DE MENSAJE
     function generarLink(i) {
         const p = pacientesGlobal[i];
-        let cel = (p.CELULAR || p['CELULAR']).toString().replace(/\D/g, "");
+        let cel = (p.CELULAR || "").toString().replace(/\D/g, "");
         if (cel.length === 9) cel = "51" + cel;
 
         const extra = document.getElementById('msgAdicional').value.trim();
-        const nom = p.NOMBRE || p['NOMBRE'];
-        const fec = p['FECHA DE CITA'] || p['FECHA_CITA'];
-        const tur = p.TURNO || p['TURNO'];
-        const con = p.CONSULTORIO || p['CONSULTORIO'];
+        const nom = p.NOMBRE || "";
+        const fec = p.FECHA_CITA || "";
+        const tur = p.TURNO || "";
+        const con = p.CONSULTORIO || "";
 
         const msg = `Hola, le saludamos del Centro de Salud *Castillo Grande*. Le recordamos la cita de *${nom}* para el día *${fec}* en el turno *${tur}* (${con}). Por favor, acuda puntualmente.${extra ? '\n\n📌 *Nota:* ' + extra : ''}`;
         
@@ -205,19 +207,19 @@
 
     // 5. REPORTE A COLUMNA Q
     function reportarError(i) {
-        const cel = pacientesGlobal[i].CELULAR || pacientesGlobal[i]['CELULAR'];
+        const cel = pacientesGlobal[i].CELULAR;
         fetch(`${SCRIPT_URL}?errorNum=${cel}`, { mode: 'no-cors' });
         alert("Reportado en Columna Q");
         marcarVisto(i, true);
     }
 
-    // 6. LÓGICA DE FLUJO CONTINUO
+    // 6. FLUJO CONTINUO
     function prepararSiguiente() {
         const btn = document.getElementById('btnSiguiente');
         if (indiceActual < pacientesGlobal.length) {
             btn.href = generarLink(indiceActual);
             btn.style.display = 'block';
-            btn.innerText = `SIGUIENTE: ${pacientesGlobal[indiceActual].NOMBRE || pacientesGlobal[indiceActual]['NOMBRE']}`;
+            btn.innerText = `SIGUIENTE: ${pacientesGlobal[indiceActual].NOMBRE || ""}`;
         } else {
             btn.style.display = 'none';
         }
@@ -234,8 +236,8 @@
         if(row) {
             row.style.opacity = "0.3";
             row.style.background = err ? "#fff0f0" : "#f5f5f5";
-            const btnS = row.querySelector('.btn-send');
-            if(btnS) btnS.style.display = "none";
+            const bSend = row.querySelector('.btn-send');
+            if(bSend) bSend.style.display = "none";
         }
     }
 </script>
