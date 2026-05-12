@@ -3,33 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SISTEMA RECUERDA CITA CRED V6.8</title>
-    <!-- Mantenemos tus librerías externas -->
+    <title>SISTEMA RECUERDA CITA CRED V6.8 - Castillo Grande</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
     <style>
         :root { --dark: #075E54; --wa: #25D366; --accent: #00a884; --error: #ef5350; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #333; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; overflow-x: hidden; }
         
-        /* Mantenemos tu slideshow original */
+        /* DISEÑO DE FONDO Y SLIDESHOW */
         .slideshow { position: fixed; width: 100%; height: 100%; top: 0; left: 0; z-index: -1; list-style: none; margin: 0; padding: 0; }
         .slideshow li { width: 100%; height: 100%; position: absolute; background-size: cover; background-position: center; background-repeat: no-repeat; opacity: 0; z-index: 0; animation: imageAnimation 36s linear infinite; }
         .slideshow li:nth-child(1) { background-image: url('https://images.unsplash.com/photo-1584820923423-8f2df4777b71?q=80&w=1600'); }
         .slideshow li:nth-child(2) { background-image: url('https://images.unsplash.com/photo-1532938911079-1b06ac7ceec7?q=80&w=1600'); animation-delay: 12s; }
-        @keyframes imageAnimation { 0% { opacity: 0; animation-timing-function: ease-in; } 8% { opacity: 1; animation-timing-function: ease-out; } 33% { opacity: 1; } 41% { opacity: 0; } 100% { opacity: 0; } }
+        @keyframes imageAnimation { 0% { opacity: 0; } 8% { opacity: 1; } 33% { opacity: 1; } 41% { opacity: 0; } }
 
+        /* TARJETA PRINCIPAL */
         .card { background: rgba(255, 255, 255, 0.96); padding: 25px; border-radius: 25px; width: 95%; max-width: 480px; box-shadow: 0 15px 45px rgba(0,0,0,0.6); backdrop-filter: blur(10px); position: relative; z-index: 1; border: 1px solid rgba(255,255,255,0.3); }
         h2 { color: var(--dark); text-align: center; text-transform: uppercase; font-weight: 800; font-size: 20px; margin-bottom: 20px; letter-spacing: 1px; }
         
         .filtros { display: flex; flex-direction: column; gap: 10px; background: white; padding: 15px; border-radius: 15px; border: 1px solid #eee; }
         label { font-size: 10px; font-weight: 800; color: #777; text-transform: uppercase; margin-bottom: -5px; margin-left: 5px; }
         input, select, textarea { padding: 12px; border-radius: 10px; border: 1px solid #ddd; width: 100%; box-sizing: border-box; font-size: 14px; outline: none; transition: 0.3s; resize: none; }
+        input:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 8px rgba(0,168,132,0.2); }
         
         .btn-main { background: var(--accent); color: white; border: none; padding: 15px; border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 10px; text-transform: uppercase; width: 100%; font-size: 14px; transition: 0.3s; }
         .btn-main:hover { background: var(--dark); }
         
         .btn-next { background: #ff9800; color: white; padding: 18px; border-radius: 15px; text-align: center; text-decoration: none; display: none; font-weight: 900; margin-bottom: 15px; box-shadow: 0 5px 15px rgba(255,152,0,0.4); text-transform: uppercase; font-size: 13px; border: 2px solid white; }
 
-        .tarjeta { background: white; border-radius: 15px; padding: 15px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; border-left: 6px solid var(--accent); box-shadow: 0 4px 12px rgba(0,0,0,0.05); transition: 0.3s; }
+        /* LISTADO DE PACIENTES */
+        .tarjeta { background: white; border-radius: 15px; padding: 15px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; border-left: 6px solid var(--accent); box-shadow: 0 4px 12px rgba(0,0,0,0.05); transition: 0.3s; animation: slideIn 0.4s ease-out; }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
         .info b { display: block; color: var(--dark); font-size: 13px; text-transform: uppercase; line-height: 1.2; }
         .info span { font-size: 11px; color: #666; display: block; margin-top: 4px; }
 
@@ -38,6 +42,8 @@
         .btn-error { background: #fdfdfd; color: #bbb; border: 1px solid #eee; padding: 5px 10px; border-radius: 8px; font-size: 9px; cursor: pointer; font-weight: bold; }
 
         #lista { max-height: 320px; overflow-y: auto; margin-top: 15px; padding-right: 8px; }
+        #lista::-webkit-scrollbar { width: 4px; }
+        #lista::-webkit-scrollbar-thumb { background: #ddd; border-radius: 10px; }
         #contador { text-align: center; font-size: 11px; color: #888; margin: 12px 0; font-weight: bold; }
     </style>
 </head>
@@ -90,29 +96,30 @@
     let pacientesGlobal = [];
     let indiceActual = 0;
 
-    // --- FUNCIÓN DE NORMALIZACIÓN TOTAL (CORRIGE EL ERROR DE MIGRACIÓN) ---
+    /** 
+     * FUNCION DE NORMALIZACION TOTAL (PARCHE PARA MIGRACION)
+     * Esta función evita que tengas que formatear el Excel.
+     */
     function normalizarFecha(str) {
         if (!str) return null;
-        // Limpiamos espacios, comillas y tomamos solo la parte de la fecha
         let limpio = str.toString().replace(/"/g, "").trim().split(" ")[0];
         let d, m, y;
 
         if (limpio.includes("/")) {
             let partes = limpio.split("/");
-            if (partes[0].length === 4) { [y, m, d] = partes; } // YYYY/MM/DD
-            else { [d, m, y] = partes; } // DD/MM/YYYY
+            if (partes[0].length === 4) { [y, m, d] = partes; } 
+            else { [d, m, y] = partes; }
         } else if (limpio.includes("-")) {
             let partes = limpio.split("-");
-            if (partes[0].length === 4) { [y, m, d] = partes; } // YYYY-MM-DD
-            else { [d, m, y] = partes; } // DD-MM-YYYY
+            if (partes[0].length === 4) { [y, m, d] = partes; }
+            else { [d, m, y] = partes; }
         } else { return null; }
 
-        // Asegurar año de 4 dígitos y meses/días de 2 dígitos
-        if (y.length === 2) y = "20" + y;
+        if (y && y.length === 2) y = "20" + y;
         return `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
     }
 
-    // Carga inicial de consultorios
+    // 1. CARGA DE CONSULTORIOS AL INICIO
     window.onload = async () => {
         try {
             const resp = await fetch(`${SCRIPT_URL}?getFiltros=true`);
@@ -124,9 +131,10 @@
                     if(c) select.innerHTML += `<option value="${c}">${c}</option>`;
                 });
             }
-        } catch(e) { console.error("Error al cargar consultorios"); }
+        } catch(e) { console.error("Error consultorios"); }
     };
 
+    // 2. FUNCIÓN PRINCIPAL DE CARGA Y FILTRADO
     async function cargarDatos() {
         const btn = document.querySelector('.btn-main');
         const fIni = document.getElementById('fechaInicio').value;
@@ -134,7 +142,7 @@
         const consSel = document.getElementById('filtroConsultorio').value;
         const turnoSel = document.getElementById('filtroTurno').value;
 
-        if (!fIni || !fFin) return alert("Por favor, selecciona un rango de fechas.");
+        if (!fIni || !fFin) return alert("Seleccione el rango de fechas");
 
         btn.innerText = "BUSCANDO...";
         btn.disabled = true;
@@ -149,11 +157,7 @@
                 skipEmptyLines: true,
                 complete: function(results) {
                     pacientesGlobal = results.data.filter(p => {
-                        // Intentamos obtener la fecha de varias columnas posibles
-                        const fechaRaw = p["FECHA DE CITA"] || p.FECHA_CITA || p.FECHA;
-                        const fNormal = normalizarFecha(fechaRaw);
-                        
-                        // Limpieza agresiva del celular (quita guiones, espacios, etc)
+                        const fNormal = normalizarFecha(p["FECHA DE CITA"] || p.FECHA_CITA);
                         const cel = (p.CELULAR || "").toString().replace(/[^\d]/g, "").trim();
                         const turno = (p.TURNO || "").toUpperCase().trim().replace(/"/g, "");
 
@@ -167,21 +171,20 @@
                     btn.innerText = "Consultar Citados";
                     btn.disabled = false;
                     
-                    if(pacientesGlobal.length === 0) {
-                        alert("No hay citas para ese rango de fechas.");
-                    }
+                    if(pacientesGlobal.length === 0) alert("No se encontraron citas para estas fechas.");
                     
                     mostrarLista();
                     prepararSiguiente();
                 }
             });
         } catch (err) {
-            alert("Error de conexión con el servidor.");
+            alert("Error de red");
             btn.innerText = "Consultar Citados";
             btn.disabled = false;
         }
     }
 
+    // 3. MOSTRAR LISTADO EN PANTALLA
     function mostrarLista() {
         const div = document.getElementById('lista');
         document.getElementById('contador').innerText = `ENCONTRADOS: ${pacientesGlobal.length}`;
@@ -193,9 +196,9 @@
             item.id = `pac-row-${i}`;
             item.innerHTML = `
                 <div class="info">
-                    <b>${(p.NOMBRE || "SIN NOMBRE").replace(/"/g, "")}</b>
-                    <span>📅 ${(p["FECHA DE CITA"] || p.FECHA_CITA || "").replace(/"/g, "")} | ⏰ ${(p.TURNO || "").replace(/"/g, "")}</span>
-                    <span style="font-size:9px; color:var(--accent);">📍 ${(p.CONSULTORIO || "GENERAL").replace(/"/g, "")}</span>
+                    <b>${(p.NOMBRE || "S/N").replace(/"/g, "")}</b>
+                    <span>📅 ${p["FECHA DE CITA"] || p.FECHA_CITA} | ⏰ ${p.TURNO}</span>
+                    <span style="font-size:9px; color:var(--accent);">📍 ${p.CONSULTORIO}</span>
                 </div>
                 <div class="actions">
                     <a href="#" class="btn-send" onclick="enviarIndividual(${i})">ENVIAR WA</a>
@@ -206,29 +209,33 @@
         });
     }
 
+    // 4. GENERAR EL ENLACE DE WHATSAPP
     function generarLink(i) {
         const p = pacientesGlobal[i];
         let cel = (p.CELULAR || "").toString().replace(/[^\d]/g, ""); 
         if (cel.length === 9) cel = "51" + cel;
 
         const extra = document.getElementById('msgAdicional').value.trim();
-        const msg = `Hola, le saludamos del Centro de Salud *Castillo Grande*. Le recordamos la cita de *${(p.NOMBRE || "").replace(/"/g, "")}* para el día *${(p["FECHA DE CITA"] || p.FECHA_CITA || "").replace(/"/g, "")}* en el turno *${(p.TURNO || "").replace(/"/g, "")}* (${(p.CONSULTORIO || "").replace(/"/g, "")}). Por favor, acuda puntualmente.${extra ? '\n\n📌 *Nota:* ' + extra : ''}`;
+        const msg = `Hola, le saludamos del Centro de Salud *Castillo Grande*. Le recordamos la cita de *${(p.NOMBRE || "").replace(/"/g, "")}* para el día *${p["FECHA DE CITA"] || p.FECHA_CITA}* en el turno *${p.TURNO}* (${p.CONSULTORIO}). Por favor, acuda puntualmente.${extra ? '\n\n📌 *Nota:* ' + extra : ''}`;
         
         return `https://api.whatsapp.com/send?phone=${cel}&text=${encodeURIComponent(msg)}`;
     }
 
+    // 5. ENVIAR MENSAJE INDIVIDUAL
     function enviarIndividual(i) {
         window.open(generarLink(i), '_blank');
         marcarVisto(i);
     }
 
+    // 6. REPORTE DE ERROR (SIN WHATSAPP)
     function reportarError(i) {
         const cel = (pacientesGlobal[i].CELULAR || "").toString().replace(/[^\d]/g, "").trim();
         fetch(`${SCRIPT_URL}?errorNum=${cel}`, { mode: 'no-cors' });
-        alert("Número marcado sin WhatsApp.");
+        alert("Número reportado.");
         marcarVisto(i, true);
     }
 
+    // 7. GESTIÓN DEL BOTÓN "ENVIAR AL SIGUIENTE"
     function prepararSiguiente() {
         const btn = document.getElementById('btnSiguiente');
         if (indiceActual < pacientesGlobal.length) {
@@ -240,12 +247,14 @@
         }
     }
 
+    // 8. MARCAR COMO ENVIADO Y PASAR AL SIGUIENTE
     function marcarSiguiente() {
         marcarVisto(indiceActual);
         indiceActual++;
         setTimeout(prepararSiguiente, 800);
     }
 
+    // 9. EFECTO VISUAL DE "VISTO"
     function marcarVisto(i, error = false) {
         const row = document.getElementById(`pac-row-${i}`);
         if(row) {
