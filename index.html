@@ -3,48 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SISTEMA RECUERDA CITA CRED V6.8 - Castillo Grande</title>
+    <title>SISTEMA RECUERDA CITA V8 - Castillo Grande</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
     <style>
         :root { --dark: #075E54; --wa: #25D366; --accent: #00a884; --error: #ef5350; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #333; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; overflow-x: hidden; }
         
-        /* DISEÑO DE FONDO Y SLIDESHOW */
         .slideshow { position: fixed; width: 100%; height: 100%; top: 0; left: 0; z-index: -1; list-style: none; margin: 0; padding: 0; }
-        .slideshow li { width: 100%; height: 100%; position: absolute; background-size: cover; background-position: center; background-repeat: no-repeat; opacity: 0; z-index: 0; animation: imageAnimation 36s linear infinite; }
+        .slideshow li { width: 100%; height: 100%; position: absolute; background-size: cover; background-position: center; opacity: 0; animation: imageAnimation 36s linear infinite; }
         .slideshow li:nth-child(1) { background-image: url('https://images.unsplash.com/photo-1584820923423-8f2df4777b71?q=80&w=1600'); }
         .slideshow li:nth-child(2) { background-image: url('https://images.unsplash.com/photo-1532938911079-1b06ac7ceec7?q=80&w=1600'); animation-delay: 12s; }
         @keyframes imageAnimation { 0% { opacity: 0; } 8% { opacity: 1; } 33% { opacity: 1; } 41% { opacity: 0; } }
 
-        /* TARJETA PRINCIPAL */
-        .card { background: rgba(255, 255, 255, 0.96); padding: 25px; border-radius: 25px; width: 95%; max-width: 480px; box-shadow: 0 15px 45px rgba(0,0,0,0.6); backdrop-filter: blur(10px); position: relative; z-index: 1; border: 1px solid rgba(255,255,255,0.3); }
-        h2 { color: var(--dark); text-align: center; text-transform: uppercase; font-weight: 800; font-size: 20px; margin-bottom: 20px; letter-spacing: 1px; }
+        .card { background: rgba(255, 255, 255, 0.96); padding: 25px; border-radius: 25px; width: 95%; max-width: 480px; box-shadow: 0 15px 45px rgba(0,0,0,0.6); backdrop-filter: blur(10px); position: relative; z-index: 1; }
+        h2 { color: var(--dark); text-align: center; text-transform: uppercase; font-weight: 800; font-size: 20px; margin-bottom: 20px; }
         
-        .filtros { display: flex; flex-direction: column; gap: 10px; background: white; padding: 15px; border-radius: 15px; border: 1px solid #eee; }
-        label { font-size: 10px; font-weight: 800; color: #777; text-transform: uppercase; margin-bottom: -5px; margin-left: 5px; }
-        input, select, textarea { padding: 12px; border-radius: 10px; border: 1px solid #ddd; width: 100%; box-sizing: border-box; font-size: 14px; outline: none; transition: 0.3s; resize: none; }
-        input:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 8px rgba(0,168,132,0.2); }
+        .filtros { display: flex; flex-direction: column; gap: 8px; background: white; padding: 15px; border-radius: 15px; border: 1px solid #eee; }
+        label { font-size: 10px; font-weight: 800; color: #777; text-transform: uppercase; margin-bottom: -4px; margin-left: 5px; }
+        input, select, textarea { padding: 10px; border-radius: 10px; border: 1px solid #ddd; width: 100%; font-size: 13px; outline: none; box-sizing: border-box; }
         
-        .btn-main { background: var(--accent); color: white; border: none; padding: 15px; border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 10px; text-transform: uppercase; width: 100%; font-size: 14px; transition: 0.3s; }
-        .btn-main:hover { background: var(--dark); }
-        
-        .btn-next { background: #ff9800; color: white; padding: 18px; border-radius: 15px; text-align: center; text-decoration: none; display: none; font-weight: 900; margin-bottom: 15px; box-shadow: 0 5px 15px rgba(255,152,0,0.4); text-transform: uppercase; font-size: 13px; border: 2px solid white; }
+        .btn-main { background: var(--accent); color: white; border: none; padding: 15px; border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 10px; text-transform: uppercase; width: 100%; transition: 0.3s; }
+        .btn-next { background: #ff9800; color: white; padding: 16px; border-radius: 15px; text-align: center; text-decoration: none; display: none; font-weight: 900; margin-bottom: 15px; text-transform: uppercase; font-size: 12px; border: 2px solid white; box-shadow: 0 5px 15px rgba(255,152,0,0.4); }
 
-        /* LISTADO DE PACIENTES */
-        .tarjeta { background: white; border-radius: 15px; padding: 15px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; border-left: 6px solid var(--accent); box-shadow: 0 4px 12px rgba(0,0,0,0.05); transition: 0.3s; animation: slideIn 0.4s ease-out; }
-        @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .tarjeta { background: white; border-radius: 15px; padding: 15px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; border-left: 6px solid var(--accent); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .info b { display: block; color: var(--dark); font-size: 13px; text-transform: uppercase; }
+        .info span { font-size: 11px; color: #666; display: block; margin-top: 2px; }
+        .hoy-badge { background: var(--error); color: white; padding: 2px 6px; border-radius: 4px; font-size: 9px; font-weight: bold; margin-top: 4px; display: inline-block; }
 
-        .info b { display: block; color: var(--dark); font-size: 13px; text-transform: uppercase; line-height: 1.2; }
-        .info span { font-size: 11px; color: #666; display: block; margin-top: 4px; }
+        .actions { display: flex; flex-direction: column; gap: 6px; align-items: flex-end; }
+        .btn-send { background: var(--wa); color: white; text-decoration: none; padding: 8px 14px; border-radius: 20px; font-size: 11px; font-weight: bold; }
+        .btn-no-wa { background: #f4f4f4; color: #666; border: 1px solid #ddd; padding: 5px 10px; border-radius: 20px; font-size: 10px; cursor: pointer; }
 
-        .actions { display: flex; flex-direction: column; gap: 8px; align-items: flex-end; }
-        .btn-send { background: var(--wa); color: white; text-decoration: none; padding: 8px 16px; border-radius: 20px; font-size: 11px; font-weight: bold; transition: 0.3s; box-shadow: 0 3px 8px rgba(37,211,102,0.3); }
-        .btn-error { background: #fdfdfd; color: #bbb; border: 1px solid #eee; padding: 5px 10px; border-radius: 8px; font-size: 9px; cursor: pointer; font-weight: bold; }
-
-        #lista { max-height: 320px; overflow-y: auto; margin-top: 15px; padding-right: 8px; }
-        #lista::-webkit-scrollbar { width: 4px; }
-        #lista::-webkit-scrollbar-thumb { background: #ddd; border-radius: 10px; }
-        #contador { text-align: center; font-size: 11px; color: #888; margin: 12px 0; font-weight: bold; }
+        #lista { max-height: 350px; overflow-y: auto; margin-top: 10px; padding-right: 5px; }
+        #contador { text-align: center; font-size: 11px; color: #888; margin-bottom: 10px; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -66,202 +57,176 @@
             </div>
         </div>
         
+        <label>EESS:</label>
+        <select id="filtroEESS"><option value="TODOS">-- TODOS LOS EESS --</option></select>
+
         <label>Consultorio:</label>
-        <select id="filtroConsultorio">
-            <option value="TODOS">Cargando consultorios...</option>
-        </select>
+        <select id="filtroConsultorio"><option value="TODOS">-- TODOS LOS CONSULTORIOS --</option></select>
 
         <label>Turno:</label>
         <select id="filtroTurno">
             <option value="TODOS">TODOS LOS TURNOS</option>
-            <option value="MAÑANA">MAÑANA</option>
-            <option value="TARDE">TARDE</option>
+            <option value="Mañana">MAÑANA</option>
+            <option value="Tarde">TARDE</option>
         </select>
 
         <label>Mensaje Adicional:</label>
-        <textarea id="msgAdicional" rows="2" placeholder="Ej: Traer carnet de vacunación y DNI físico..."></textarea>
+        <textarea id="msgAdicional" rows="2" placeholder="Ej: Traer carnet de vacunación..."></textarea>
 
-        <button class="btn-main" onclick="cargarDatos()">Consultar Citados</button>
+        <button class="btn-main" onclick="cargarExcel()">Mostrar Listado</button>
     </div>
     
     <p id="contador"></p>
-    <a id="btnSiguiente" href="#" target="_blank" class="btn-next" onclick="marcarSiguiente()">ENVIAR AL SIGUIENTE</a>
+    <a id="btnSiguiente" href="#" target="_blank" class="btn-next" onclick="marcarSiguiente()">SIGUIENTE PACIENTE</a>
 
     <div id="lista"></div>
 </div>
 
 <script>
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzdVky8yEUEeAXaD7YzKHpA1-SYh5ZExbqetuMcZY8PMyhq4Jg6ihsalc84-bI1IXVmTg/exec';
+    const URL_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT-kCdER9NTPl29MALvc5Bam5N-UniBAH-OqP5GusOdT9wbJyQ5XQs-Qt66L6ds9ZxW1sUtZ9L7z4pW/pub?gid=0&single=true&output=csv';
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbye8k93u2HrGI6Y_LwD_4PVG7n-sGT49BD9CRoD-JuBAInplvX-yJ1jdnKJFPosLwM/exec';
     
     let pacientesGlobal = [];
     let indiceActual = 0;
 
-    /** 
-     * FUNCION DE NORMALIZACION TOTAL (PARCHE PARA MIGRACION)
-     * Esta función evita que tengas que formatear el Excel.
-     */
-    function normalizarFecha(str) {
-        if (!str) return null;
-        let limpio = str.toString().replace(/"/g, "").trim().split(" ")[0];
-        let d, m, y;
+    // 1. CARGA INICIAL DE FILTROS (Mantenido)
+    window.onload = function() {
+        Papa.parse(URL_CSV, {
+            download: true,
+            header: true,
+            complete: function(res) {
+                const selectEESS = document.getElementById('filtroEESS');
+                const eessUnicos = [...new Set(res.data.map(p => p.EESS).filter(Boolean))];
+                eessUnicos.sort().forEach(e => {
+                    let opt = document.createElement('option');
+                    opt.value = e; opt.innerHTML = e;
+                    selectEESS.appendChild(opt);
+                });
 
-        if (limpio.includes("/")) {
-            let partes = limpio.split("/");
-            if (partes[0].length === 4) { [y, m, d] = partes; } 
-            else { [d, m, y] = partes; }
-        } else if (limpio.includes("-")) {
-            let partes = limpio.split("-");
-            if (partes[0].length === 4) { [y, m, d] = partes; }
-            else { [d, m, y] = partes; }
-        } else { return null; }
-
-        if (y && y.length === 2) y = "20" + y;
-        return `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
-    }
-
-    // 1. CARGA DE CONSULTORIOS AL INICIO
-    window.onload = async () => {
-        try {
-            const resp = await fetch(`${SCRIPT_URL}?getFiltros=true`);
-            const data = await resp.json();
-            const select = document.getElementById('filtroConsultorio');
-            select.innerHTML = '<option value="TODOS">-- TODOS LOS CONSULTORIOS --</option>';
-            if(data.consultorios) {
-                data.consultorios.forEach(c => {
-                    if(c) select.innerHTML += `<option value="${c}">${c}</option>`;
+                const selectCons = document.getElementById('filtroConsultorio');
+                const consUnicos = [...new Set(res.data.map(p => p.CONSULTORIO).filter(Boolean))];
+                consUnicos.sort().forEach(c => {
+                    let opt = document.createElement('option');
+                    opt.value = c; opt.innerHTML = c;
+                    selectCons.appendChild(opt);
                 });
             }
-        } catch(e) { console.error("Error consultorios"); }
+        });
     };
 
-    // 2. FUNCIÓN PRINCIPAL DE CARGA Y FILTRADO
-    async function cargarDatos() {
-        const btn = document.querySelector('.btn-main');
-        const fIni = document.getElementById('fechaInicio').value;
-        const fFin = document.getElementById('fechaFin').value;
+    // 2. FILTRADO CON LÓGICA DE FECHAS SEGURA
+    function cargarExcel() {
+        const fIniInput = document.getElementById('fechaInicio').value;
+        const fFinInput = document.getElementById('fechaFin').value;
+        const eessSel = document.getElementById('filtroEESS').value;
         const consSel = document.getElementById('filtroConsultorio').value;
         const turnoSel = document.getElementById('filtroTurno').value;
 
-        if (!fIni || !fFin) return alert("Seleccione el rango de fechas");
+        if (!fIniInput || !fFinInput) return alert("Selecciona fechas");
 
-        btn.innerText = "BUSCANDO...";
-        btn.disabled = true;
+        Papa.parse(URL_CSV, {
+            download: true,
+            header: true,
+            skipEmptyLines: true,
+            complete: function(res) {
+                pacientesGlobal = res.data.filter(p => {
+                    if (!p['FECHA DE CITA'] || !p.CELULAR) return false;
 
-        try {
-            const url = `${SCRIPT_URL}?exportar=true&cons=${encodeURIComponent(consSel)}`;
-            const resp = await fetch(url);
-            const csvText = await resp.text();
+                    const partes = p['FECHA DE CITA'].split('/');
+                    const fechaPaciente = new Date(partes[2], partes[1] - 1, partes[0]);
+                    const dInicio = new Date(fIniInput + "T00:00:00");
+                    const dFin = new Date(fFinInput + "T23:59:59");
 
-            Papa.parse(csvText, {
-                header: true,
-                skipEmptyLines: true,
-                complete: function(results) {
-                    pacientesGlobal = results.data.filter(p => {
-                        const fNormal = normalizarFecha(p["FECHA DE CITA"] || p.FECHA_CITA);
-                        const cel = (p.CELULAR || "").toString().replace(/[^\d]/g, "").trim();
-                        const turno = (p.TURNO || "").toUpperCase().trim().replace(/"/g, "");
+                    const cumpleFecha = (fechaPaciente >= dInicio && fechaPaciente <= dFin);
+                    const cumpleEESS = (eessSel === "TODOS" || p.EESS === eessSel);
+                    const cumpleCons = (consSel === "TODOS" || p.CONSULTORIO === consSel);
+                    const cumpleTurno = (turnoSel === "TODOS" || p.TURNO.trim() === turnoSel);
 
-                        const cumpleFecha = (fNormal >= fIni && fNormal <= fFin);
-                        const cumpleTurno = (turnoSel === "TODOS" || turno === turnoSel);
-                        
-                        return cel !== "" && cumpleFecha && cumpleTurno;
-                    });
-
-                    indiceActual = 0;
-                    btn.innerText = "Consultar Citados";
-                    btn.disabled = false;
-                    
-                    if(pacientesGlobal.length === 0) alert("No se encontraron citas para estas fechas.");
-                    
-                    mostrarLista();
-                    prepararSiguiente();
-                }
-            });
-        } catch (err) {
-            alert("Error de red");
-            btn.innerText = "Consultar Citados";
-            btn.disabled = false;
-        }
+                    return cumpleFecha && cumpleEESS && cumpleCons && cumpleTurno;
+                });
+                indiceActual = 0;
+                mostrarLista();
+                prepararSiguiente();
+            }
+        });
     }
 
-    // 3. MOSTRAR LISTADO EN PANTALLA
+    // 3. MOSTRAR LISTA CON BADGE DE HOY Y CHECKS
     function mostrarLista() {
         const div = document.getElementById('lista');
         document.getElementById('contador').innerText = `ENCONTRADOS: ${pacientesGlobal.length}`;
         div.innerHTML = "";
         
+        const hoy = new Date();
+        const hoyStr = `${hoy.getDate().toString().padStart(2,'0')}/${(hoy.getMonth()+1).toString().padStart(2,'0')}/${hoy.getFullYear()}`;
+
         pacientesGlobal.forEach((p, i) => {
+            const esHoy = (p['FECHA DE CITA'].trim() === hoyStr);
             const item = document.createElement('div');
             item.className = 'tarjeta';
             item.id = `pac-row-${i}`;
             item.innerHTML = `
                 <div class="info">
-                    <b>${(p.NOMBRE || "S/N").replace(/"/g, "")}</b>
-                    <span>📅 ${p["FECHA DE CITA"] || p.FECHA_CITA} | ⏰ ${p.TURNO}</span>
-                    <span style="font-size:9px; color:var(--accent);">📍 ${p.CONSULTORIO}</span>
+                    <b>${p.NOMBRE}</b>
+                    <span>📅 ${p['FECHA DE CITA']} | ⏰ ${p.TURNO}</span>
+                    <span style="font-size:9px; color:var(--accent);">📍 ${p.EESS} - ${p.CONSULTORIO}</span>
+                    ${esHoy ? '<span class="hoy-badge">CITA PARA HOY</span>' : ''}
                 </div>
                 <div class="actions">
-                    <a href="#" class="btn-send" onclick="enviarIndividual(${i})">ENVIAR WA</a>
-                    <button class="btn-error" onclick="reportarError(${i})">SIN WA</button>
+                    <a href="#" class="btn-send" onclick="enviarIndividual(${i})">ENVIAR</a>
+                    <button class="btn-no-wa" onclick="reportarError(${i})">SIN WA</button>
                 </div>
             `;
             div.appendChild(item);
         });
     }
 
-    // 4. GENERAR EL ENLACE DE WHATSAPP
-    function generarLink(i) {
-        const p = pacientesGlobal[i];
-        let cel = (p.CELULAR || "").toString().replace(/[^\d]/g, ""); 
-        if (cel.length === 9) cel = "51" + cel;
-
-        const extra = document.getElementById('msgAdicional').value.trim();
-        const msg = `Hola, le saludamos del Centro de Salud *Castillo Grande*. Le recordamos la cita de *${(p.NOMBRE || "").replace(/"/g, "")}* para el día *${p["FECHA DE CITA"] || p.FECHA_CITA}* en el turno *${p.TURNO}* (${p.CONSULTORIO}). Por favor, acuda puntualmente.${extra ? '\n\n📌 *Nota:* ' + extra : ''}`;
+    // 4. GENERACIÓN DE MENSAJE COMPLETO
+    function generarLink(p) {
+        const hoy = new Date();
+        const hoyStr = `${hoy.getDate().toString().padStart(2,'0')}/${(hoy.getMonth()+1).toString().padStart(2,'0')}/${hoy.getFullYear()}`;
+        const fechaTxt = (p['FECHA DE CITA'].trim() === hoyStr) ? "*HOY*" : `el *${p['FECHA DE CITA']}*`;
         
-        return `https://api.whatsapp.com/send?phone=${cel}&text=${encodeURIComponent(msg)}`;
+        const extra = document.getElementById('msgAdicional').value.trim();
+        const msg = `Le saludo del Centro de Salud *${p.EESS}*, mamita de *${p.NOMBRE}*, se le recuerda la cita CRED para el ${fechaTxt} en el turno *${p.TURNO}* en el *CONSULTORIO: ${p.CONSULTORIO}*. Por favor, no falte.${extra ? '\n\n📌 *Nota:* ' + extra : ''}\n\nVisita nuestra web: https://desarrolloinfantiltemprano-dit.github.io/casita/\nGrupo: https://chat.whatsapp.com/FELCvT889zo265G8LkVkPY`;
+        
+        let cel = p.CELULAR.toString().replace(/[^\d]/g, "");
+        return `https://api.whatsapp.com/send?phone=51${cel}&text=${encodeURIComponent(msg)}`;
     }
 
-    // 5. ENVIAR MENSAJE INDIVIDUAL
     function enviarIndividual(i) {
-        window.open(generarLink(i), '_blank');
+        window.open(generarLink(pacientesGlobal[i]), '_blank');
         marcarVisto(i);
     }
 
-    // 6. REPORTE DE ERROR (SIN WHATSAPP)
     function reportarError(i) {
-        const cel = (pacientesGlobal[i].CELULAR || "").toString().replace(/[^\d]/g, "").trim();
-        fetch(`${SCRIPT_URL}?errorNum=${cel}`, { mode: 'no-cors' });
-        alert("Número reportado.");
+        const p = pacientesGlobal[i];
+        fetch(`${SCRIPT_URL}?errorNum=${p.CELULAR.trim()}`, { mode: 'no-cors' });
         marcarVisto(i, true);
     }
 
-    // 7. GESTIÓN DEL BOTÓN "ENVIAR AL SIGUIENTE"
     function prepararSiguiente() {
         const btn = document.getElementById('btnSiguiente');
         if (indiceActual < pacientesGlobal.length) {
-            btn.href = generarLink(indiceActual);
+            btn.href = generarLink(pacientesGlobal[indiceActual]);
             btn.style.display = 'block';
-            btn.innerText = `ENVIAR A: ${(pacientesGlobal[indiceActual].NOMBRE || "").substring(0, 20)}...`;
-        } else {
-            btn.style.display = 'none';
-        }
+            btn.innerText = `SIGUIENTE: ${pacientesGlobal[indiceActual].NOMBRE}`;
+        } else { btn.style.display = 'none'; }
     }
 
-    // 8. MARCAR COMO ENVIADO Y PASAR AL SIGUIENTE
     function marcarSiguiente() {
         marcarVisto(indiceActual);
         indiceActual++;
-        setTimeout(prepararSiguiente, 800);
+        setTimeout(prepararSiguiente, 1000);
     }
 
-    // 9. EFECTO VISUAL DE "VISTO"
     function marcarVisto(i, error = false) {
         const row = document.getElementById(`pac-row-${i}`);
         if(row) {
-            row.style.opacity = "0.3";
+            row.style.opacity = "0.4";
             row.style.background = error ? "#fff0f0" : "#f5f5f5";
-            const btn = row.querySelector('.btn-send');
-            if(btn) btn.style.display = "none";
+            const actions = row.querySelector('.actions');
+            actions.innerHTML = `<span style="font-size:11px; font-weight:bold; color:${error?'red':'green'}">${error?'❌ MARCADO':'✅ ENVIADO'}</span>`;
         }
     }
 </script>
