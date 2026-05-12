@@ -42,7 +42,7 @@
 <ul class="slideshow"><li></li><li></li></ul>
 
 <div class="card">
-    <h2>RECyo no seD</h2>
+    <h2>RECUERDA CITAS CRED</h2>
     
     <div class="filtros">
         <label>Rango de Fecha:</label>
@@ -91,42 +91,67 @@
         } catch(e) { console.error("Error cargando filtros"); }
     };
 
+    function getVal(obj, search) {
+        const keys = Object.keys(obj);
+        let key = keys.find(k => k.trim().replace(/'/g, "").toUpperCase() === search.toUpperCase());
+        if (!key && search === "FECHA DE CITA") {
+            key = keys.find(k => {
+                const s = k.toUpperCase();
+                return s.includes("CITA") && !s.includes("NACIMIENTO");
+            });
+        }
+        return key ? obj[key] : "";
+    }
+
+    // NUEVA FUNCIÓN PARA PROCESAR CUALQUIER FORMATO DE FECHA
+    function parsearFecha(str) {
+        if (!str) return null;
+        let s = str.toString().replace(/'/g, "").trim();
+        
+        // Caso DD/MM/YYYY o DD-MM-YYYY
+        let partes = s.split(/[\/\-]/);
+        if (partes.length === 3) {
+            // Si el primer tramo es el año (YYYY-MM-DD)
+            if (partes[0].length === 4) return new Date(partes[0], partes[1]-1, partes[2]);
+            // Si el último tramo es el año (DD/MM/YYYY)
+            return new Date(partes[2], partes[1]-1, partes[0]);
+        }
+        
+        // Intento de parseo directo por si viene en formato estándar
+        let d = new Date(s);
+        return isNaN(d.getTime()) ? null : d;
+    }
+
     async function cargarDatos() {
         const btn = document.querySelector('.btn-main');
-        const fIni = document.getElementById('fechaInicio').value;
-        const fFin = document.getElementById('fechaFin').value;
-        const cons = document.getElementById('filtroConsultorio').value;
+        const fIniStr = document.getElementById('fechaInicio').value;
+        const fFinStr = document.getElementById('fechaFin').value;
+        const consSel = document.getElementById('filtroConsultorio').value;
 
-        if (!fIni || !fFin) return alert("Selecciona el rango de fechas");
+        if (!fIniStr || !fFinStr) return alert("Selecciona el rango de fechas");
 
-        btn.innerText = "Buscando...";
+        btn.innerText = "BUSCANDO...";
         btn.disabled = true;
 
         try {
-            const url = `${SCRIPT_URL}?exportar=true&cons=${encodeURIComponent(cons)}`;
+            const url = `${SCRIPT_URL}?exportar=true&cons=${encodeURIComponent(consSel)}`;
             const resp = await fetch(url);
             const csvText = await resp.text();
 
             Papa.parse(csvText, {
                 header: true,
                 skipEmptyLines: true,
-                transformHeader: h => h.trim(),
                 complete: function(results) {
                     const turnoSel = document.getElementById('filtroTurno').value;
-                    const dInicio = new Date(fIni + "T00:00:00");
-                    const dFin = new Date(fFin + "T23:59:59");
+                    const dInicio = new Date(fIniStr + "T00:00:00");
+                    const dFin = new Date(fFinStr + "T23:59:59");
 
                     pacientesGlobal = results.data.filter(p => {
-                        // LIMPIEZA CRÍTICA (Elimina la comilla simple y espacios)
-                        let fechaRaw = (p['FECHA DE CITA'] || "").toString().replace("'", "").trim();
-                        
-                        if (!fechaRaw.includes("/")) return false;
+                        const fechaPaciente = parsearFecha(getVal(p, "FECHA DE CITA"));
+                        if (!fechaPaciente) return false;
 
-                        const partes = fechaRaw.split('/');
-                        const fechaPaciente = new Date(parseInt(partes[2]), parseInt(partes[1]) - 1, parseInt(partes[0]));
-
-                        const turnoP = (p['TURNO'] || "").toUpperCase().trim();
-                        const cel = (p['CELULAR'] || "").toString().replace(/\D/g, "");
+                        const turnoP = (getVal(p, "TURNO") || "").toUpperCase().trim();
+                        const cel = (getVal(p, "CELULAR") || "").toString().replace(/\D/g, "");
 
                         const cumpleFecha = (fechaPaciente >= dInicio && fechaPaciente <= dFin);
                         const cumpleTurno = (turnoSel === "TODOS" || turnoP === turnoSel);
@@ -135,12 +160,12 @@
                     });
 
                     indiceActual = 0;
-                    btn.innerText = "Consultar Citados";
+                    btn.innerText = "CONSULTAR CITADOS";
                     btn.disabled = false;
                     mostrarLista();
                     prepararSiguiente();
                     
-                    if(pacientesGlobal.length === 0) alert("No se encontraron citados. Verifica que las fechas en el Excel tengan el formato DD/MM/YYYY.");
+                    if(pacientesGlobal.length === 0) alert("No se encontraron citados. Verifica que las fechas estén dentro del rango seleccionado.");
                 }
             });
         } catch (err) {
@@ -149,20 +174,20 @@
         }
     }
 
+    // Las demás funciones se mantienen igual para no perder funcionalidad
     function mostrarLista() {
         const div = document.getElementById('lista');
         document.getElementById('contador').innerText = `ENCONTRADOS: ${pacientesGlobal.length}`;
         div.innerHTML = "";
-        
         pacientesGlobal.forEach((p, i) => {
             const item = document.createElement('div');
             item.className = 'tarjeta';
             item.id = `pac-row-${i}`;
             item.innerHTML = `
                 <div class="info">
-                    <b>${p['NOMBRE']}</b>
-                    <span>📅 ${p['FECHA DE CITA']} | ⏰ ${p['TURNO']}</span>
-                    <span style="font-size:9px; color:var(--accent);">📍 ${p['CONSULTORIO']}</span>
+                    <b>${getVal(p, "NOMBRE")}</b>
+                    <span>📅 ${getVal(p, "FECHA DE CITA")} | ⏰ ${getVal(p, "TURNO")}</span>
+                    <span style="font-size:9px; color:var(--accent);">📍 ${getVal(p, "CONSULTORIO")}</span>
                 </div>
                 <div class="actions">
                     <a href="#" class="btn-send" onclick="enviarIndividual(${i})">ENVIAR</a>
@@ -175,44 +200,29 @@
 
     function generarLink(i) {
         const p = pacientesGlobal[i];
-        let cel = (p['CELULAR'] || "").toString().replace(/\D/g, "");
+        let cel = (getVal(p, "CELULAR") || "").toString().replace(/\D/g, "");
         if (cel.length === 9) cel = "51" + cel;
-
         const extra = document.getElementById('msgAdicional').value.trim();
-        const msg = `Hola, le saludamos del Centro de Salud *Castillo Grande*. Le recordamos la cita de *${p['NOMBRE']}* para el día *${p['FECHA DE CITA']}* en el turno *${p['TURNO']}* (${p['CONSULTORIO']}). Por favor, acuda puntualmente.${extra ? '\n\n📌 *Nota:* ' + extra : ''}`;
-        
+        const msg = `Hola, le saludamos del Centro de Salud *Castillo Grande*. Le recordamos la cita de *${getVal(p, "NOMBRE")}* para el día *${getVal(p, "FECHA DE CITA")}* en el turno *${getVal(p, "TURNO")}* (${getVal(p, "CONSULTORIO")}). Por favor, acuda puntualmente.${extra ? '\n\n📌 *Nota:* ' + extra : ''}`;
         return `https://api.whatsapp.com/send?phone=${cel}&text=${encodeURIComponent(msg)}`;
     }
 
-    function enviarIndividual(i) {
-        window.open(generarLink(i), '_blank');
-        marcarVisto(i);
-    }
-
+    function enviarIndividual(i) { window.open(generarLink(i), '_blank'); marcarVisto(i); }
     function reportarError(i) {
-        const cel = (pacientesGlobal[i]['CELULAR'] || "").toString().replace(/\D/g, "");
+        const cel = (getVal(pacientesGlobal[i], "CELULAR") || "").toString().replace(/\D/g, "");
         fetch(`${SCRIPT_URL}?errorNum=${cel}`, { mode: 'no-cors' });
         marcarVisto(i, true);
     }
-
     function prepararSiguiente() {
         const btn = document.getElementById('btnSiguiente');
         if (indiceActual < pacientesGlobal.length) {
             btn.href = generarLink(indiceActual);
             btn.style.display = 'block';
-            const nom = pacientesGlobal[indiceActual]['NOMBRE'] || "PACIENTE";
+            const nom = getVal(pacientesGlobal[indiceActual], "NOMBRE") || "PACIENTE";
             btn.innerText = `SIGUIENTE: ${nom.split(' ')[0]}`;
-        } else {
-            btn.style.display = 'none';
-        }
+        } else { btn.style.display = 'none'; }
     }
-
-    function marcarSiguiente() {
-        marcarVisto(indiceActual);
-        indiceActual++;
-        setTimeout(prepararSiguiente, 800);
-    }
-
+    function marcarSiguiente() { marcarVisto(indiceActual); indiceActual++; setTimeout(prepararSiguiente, 800); }
     function marcarVisto(i, err = false) {
         const row = document.getElementById(`pac-row-${i}`);
         if(row) {
