@@ -3,43 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SISTEMA CITAS V6.8 - Castillo Grande</title>
+    <title>SISTEMA CITAS V6.9 - Castillo Grande</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
     <style>
-        :root { --dark: #075E54; --wa: #25D366; --accent: #00a884; --error: #ef5350; }
-        body { font-family: 'Segoe UI', sans-serif; background-color: #333; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; overflow-x: hidden; }
+        :root { --dark: #075E54; --wa: #25D366; --accent: #00a884; --error: #ef5350; --bg-card: rgba(255, 255, 255, 0.98); }
+        body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #1a1a1a; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
         
+        /* Fondo con Presentación */
         .slideshow { position: fixed; width: 100%; height: 100%; top: 0; left: 0; z-index: -1; list-style: none; margin: 0; padding: 0; }
-        .slideshow li { width: 100%; height: 100%; position: absolute; background-size: cover; background-position: center; opacity: 0; animation: imageAnimation 36s linear infinite; }
+        .slideshow li { width: 100%; height: 100%; position: absolute; background-size: cover; background-position: center; opacity: 0; animation: imageAnimation 24s linear infinite; }
         .slideshow li:nth-child(1) { background-image: url('https://images.unsplash.com/photo-1584820923423-8f2df4777b71?q=80&w=1600'); }
         .slideshow li:nth-child(2) { background-image: url('https://images.unsplash.com/photo-1532938911079-1b06ac7ceec7?q=80&w=1600'); animation-delay: 12s; }
-        @keyframes imageAnimation { 0% { opacity: 0; } 8% { opacity: 1; } 33% { opacity: 1; } 41% { opacity: 0; } }
+        @keyframes imageAnimation { 0% { opacity: 0; } 10% { opacity: 1; } 45% { opacity: 1; } 55% { opacity: 0; } }
 
-        .card { background: rgba(255, 255, 255, 0.96); padding: 25px; border-radius: 25px; width: 95%; max-width: 480px; box-shadow: 0 15px 45px rgba(0,0,0,0.6); backdrop-filter: blur(10px); position: relative; }
-        h2 { color: var(--dark); text-align: center; text-transform: uppercase; font-weight: 800; font-size: 20px; margin-bottom: 20px; letter-spacing: 1px; }
+        .card { background: var(--bg-card); padding: 20px; border-radius: 28px; width: 92%; max-width: 450px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.3); }
+        h2 { color: var(--dark); text-align: center; font-weight: 800; font-size: 1.2rem; margin-top: 0; letter-spacing: -0.5px; }
         
-        .filtros { display: flex; flex-direction: column; gap: 10px; background: white; padding: 15px; border-radius: 15px; border: 1px solid #eee; }
-        label { font-size: 10px; font-weight: 800; color: #777; text-transform: uppercase; margin-bottom: -5px; margin-left: 5px; }
-        input, select, textarea { padding: 12px; border-radius: 10px; border: 1px solid #ddd; width: 100%; box-sizing: border-box; font-size: 14px; outline: none; transition: 0.3s; }
-        input:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 8px rgba(0,168,132,0.2); }
+        .filtros { display: flex; flex-direction: column; gap: 8px; }
+        label { font-size: 11px; font-weight: 700; color: #555; text-transform: uppercase; margin-bottom: -4px; margin-left: 4px; }
+        input, select, textarea { padding: 10px 14px; border-radius: 12px; border: 1.5px solid #eee; width: 100%; box-sizing: border-box; font-size: 14px; transition: 0.2s; background: #f9f9f9; }
+        input:focus, select:focus { border-color: var(--accent); outline: none; background: #fff; }
         
-        .btn-main { background: var(--accent); color: white; border: none; padding: 15px; border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 10px; text-transform: uppercase; width: 100%; font-size: 14px; }
-        .btn-main:active { transform: scale(0.98); }
+        .btn-main { background: var(--dark); color: white; border: none; padding: 14px; border-radius: 14px; font-weight: 700; cursor: pointer; margin-top: 5px; width: 100%; transition: 0.3s; }
+        .btn-main:hover { background: var(--accent); }
+
+        .btn-next { background: #ff9800; color: white; padding: 16px; border-radius: 16px; text-align: center; text-decoration: none; display: none; font-weight: 800; margin-bottom: 12px; font-size: 13px; animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.02); } 100% { transform: scale(1); } }
+
+        #lista { max-height: 300px; overflow-y: auto; margin-top: 15px; border-top: 1px solid #eee; padding-top: 10px; }
+        .tarjeta { background: #fff; border-radius: 14px; padding: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #f0f0f0; transition: 0.2s; }
+        .info b { display: block; color: #333; font-size: 13px; line-height: 1.1; }
+        .info span { font-size: 11px; color: #777; margin-top: 3px; display: block; }
+
+        .actions { display: flex; flex-direction: column; gap: 5px; }
+        .btn-send { background: var(--wa); color: white; text-decoration: none; padding: 6px 12px; border-radius: 18px; font-size: 10px; font-weight: 800; text-align: center; }
+        .btn-error { color: #f44336; background: #ffebee; border: none; padding: 4px; border-radius: 6px; font-size: 9px; cursor: pointer; font-weight: 700; }
         
-        .btn-next { background: #ff9800; color: white; padding: 18px; border-radius: 15px; text-align: center; text-decoration: none; display: none; font-weight: 900; margin-bottom: 15px; box-shadow: 0 5px 15px rgba(255,152,0,0.4); text-transform: uppercase; font-size: 13px; }
-
-        .tarjeta { background: white; border-radius: 15px; padding: 15px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; border-left: 6px solid var(--accent); box-shadow: 0 4px 12px rgba(0,0,0,0.05); transition: 0.3s; }
-        .info b { display: block; color: var(--dark); font-size: 13px; text-transform: uppercase; line-height: 1.2; }
-        .info span { font-size: 11px; color: #666; display: block; margin-top: 4px; }
-
-        .actions { display: flex; flex-direction: column; gap: 8px; align-items: flex-end; }
-        .btn-send { background: var(--wa); color: white; text-decoration: none; padding: 8px 16px; border-radius: 20px; font-size: 11px; font-weight: bold; transition: 0.3s; }
-        .btn-error { background: #fdfdfd; color: #bbb; border: 1px solid #eee; padding: 5px 10px; border-radius: 8px; font-size: 9px; cursor: pointer; font-weight: bold; }
-
-        #lista { max-height: 320px; overflow-y: auto; margin-top: 15px; padding-right: 8px; }
-        #lista::-webkit-scrollbar { width: 4px; }
-        #lista::-webkit-scrollbar-thumb { background: #ddd; border-radius: 10px; }
-        #contador { text-align: center; font-size: 11px; color: #888; margin: 12px 0; font-weight: bold; }
+        #contador { text-align: center; font-size: 10px; color: #aaa; margin: 10px 0; letter-spacing: 1px; }
     </style>
 </head>
 <body>
@@ -47,18 +47,23 @@
 <ul class="slideshow"><li></li><li></li></ul>
 
 <div class="card">
-    <h2>RECUERDA CITAS ya CRED</h2>
+    <h2>RECUERDA CITAS CRED</h2>
     
     <div class="filtros">
-        <label>Rango de Fecha:</label>
         <div style="display: flex; gap: 8px;">
-            <input type="date" id="fechaInicio">
-            <input type="date" id="fechaFin">
+            <div style="flex:1">
+                <label>Desde:</label>
+                <input type="date" id="fechaInicio">
+            </div>
+            <div style="flex:1">
+                <label>Hasta:</label>
+                <input type="date" id="fechaFin">
+            </div>
         </div>
         
         <label>Consultorio:</label>
         <select id="filtroConsultorio">
-            <option value="TODOS">Cargando consultorios...</option>
+            <option value="TODOS">-- TODOS LOS CONSULTORIOS --</option>
         </select>
 
         <label>Turno:</label>
@@ -68,44 +73,34 @@
             <option value="TARDE">TARDE</option>
         </select>
 
-        <label>Mensaje Adicional:</label>
-        <textarea id="msgAdicional" rows="2" placeholder="Ej: Traer carnet de vacunación..."></textarea>
+        <label>Nota Adicional:</label>
+        <textarea id="msgAdicional" rows="1" placeholder="Ej: Traer DNI y Carnet..."></textarea>
 
-        <button class="btn-main" onclick="cargarDatos()">Consultar Citados</button>
+        <button class="btn-main" onclick="cargarDatos()">CONSULTAR CITADOS</button>
     </div>
     
-    <p id="contador"></p>
-    <a id="btnSiguiente" href="#" target="_blank" class="btn-next" onclick="marcarSiguiente()">ENVIAR AL SIGUIENTE</a>
+    <p id="contador">LISTO PARA BUSCAR</p>
+    <a id="btnSiguiente" href="#" target="_blank" class="btn-next" onclick="marcarSiguiente()">ENVIAR SIGUIENTE</a>
 
     <div id="lista"></div>
 </div>
 
 <script>
-    // URL del Google Apps Script
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzdVky8yEUEeAXaD7YzKHpA1-SYh5ZExbqetuMcZY8PMyhq4Jg6ihsalc84-bI1IXVmTg/exec';
-    
     let pacientesGlobal = [];
     let indiceActual = 0;
 
-    /**
-     * NORMALIZACIÓN DE FECHAS MEJORADA
-     * Convierte DD/MM/YYYY (del Excel) a YYYY-MM-DD (del Input Date)
-     */
+    // Normaliza DD/MM/YYYY a YYYY-MM-DD
     function normalizarFecha(str) {
         if (!str) return null;
-        let limpio = str.toString().replace(/"/g, "").replace(/'/g, "").trim().split(" ")[0];
-        let partes;
-
-        if (limpio.includes("/")) {
-            partes = limpio.split("/");
-            if (partes[2].length === 4) { // Formato DD/MM/YYYY
-                return `${partes[2]}-${partes[1].padStart(2,'0')}-${partes[0].padStart(2,'0')}`;
-            }
-            return `${partes[0]}-${partes[1].padStart(2,'0')}-${partes[2].padStart(2,'0')}`;
-        } else if (limpio.includes("-")) {
-            partes = limpio.split("-");
-            if (partes[0].length === 4) return limpio; // Ya es YYYY-MM-DD
-            return `${partes[2]}-${partes[1].padStart(2,'0')}-${partes[0].padStart(2,'0')}`;
+        let limpio = str.toString().replace(/[ "']/g, "").split(" ")[0];
+        let partes = limpio.includes("/") ? limpio.split("/") : limpio.split("-");
+        
+        if (partes.length === 3) {
+            // Si el primer elemento tiene 4 dígitos, asumimos YYYY-MM-DD
+            if (partes[0].length === 4) return `${partes[0]}-${partes[1].padStart(2,'0')}-${partes[2].padStart(2,'0')}`;
+            // Si el último tiene 4 dígitos, asumimos DD/MM/YYYY
+            if (partes[2].length === 4) return `${partes[2]}-${partes[1].padStart(2,'0')}-${partes[0].padStart(2,'0')}`;
         }
         return limpio;
     }
@@ -115,11 +110,10 @@
             const resp = await fetch(`${SCRIPT_URL}?getFiltros=true`);
             const data = await resp.json();
             const select = document.getElementById('filtroConsultorio');
-            select.innerHTML = '<option value="TODOS">-- TODOS LOS CONSULTORIOS --</option>';
             if(data.consultorios) {
                 data.consultorios.forEach(c => { if(c) select.innerHTML += `<option value="${c}">${c}</option>`; });
             }
-        } catch(e) { console.error("Error cargando filtros"); }
+        } catch(e) { console.error("Error cargando filtros iniciales"); }
     };
 
     async function cargarDatos() {
@@ -128,13 +122,12 @@
         const fFin = document.getElementById('fechaFin').value;
         const cons = document.getElementById('filtroConsultorio').value;
 
-        if (!fIni || !fFin) return alert("Selecciona el rango de fechas");
+        if (!fIni || !fFin) return alert("Por favor, selecciona las fechas.");
 
-        btn.innerText = "Buscando...";
+        btn.innerText = "BUSCANDO...";
         btn.disabled = true;
 
         try {
-            // Se solicita exportación CSV al backend
             const url = `${SCRIPT_URL}?exportar=true&cons=${encodeURIComponent(cons)}`;
             const resp = await fetch(url);
             const csvText = await resp.text();
@@ -147,33 +140,31 @@
 
                     pacientesGlobal = results.data.filter(p => {
                         const fechaNorm = normalizarFecha(p.FECHA_CITA);
-                        const turnoP = (p.TURNO || "").toUpperCase().trim().replace(/"/g, "");
-                        const cel = (p.CELULAR || "").toString().replace(/"/g, "").trim();
+                        const turnoP = (p.TURNO || "").toUpperCase().trim();
+                        const cel = (p.CELULAR || "").toString().replace(/\D/g, "");
 
                         const cumpleFecha = (fechaNorm >= fIni && fechaNorm <= fFin);
                         const cumpleTurno = (turnoSel === "TODOS" || turnoP === turnoSel);
                         
-                        return cel !== "" && cumpleFecha && cumpleTurno;
+                        return cel.length >= 9 && cumpleFecha && cumpleTurno;
                     });
 
                     indiceActual = 0;
-                    btn.innerText = "Consultar Citados";
+                    btn.innerText = "CONSULTAR CITADOS";
                     btn.disabled = false;
                     mostrarLista();
                     prepararSiguiente();
-                    
-                    if(pacientesGlobal.length === 0) alert("No se encontraron citados para este rango/filtro.");
                 }
             });
         } catch (err) {
-            alert("Error de conexión con el servidor");
+            alert("Error de conexión");
             btn.disabled = false;
         }
     }
 
     function mostrarLista() {
         const div = document.getElementById('lista');
-        document.getElementById('contador').innerText = `ENCONTRADOS: ${pacientesGlobal.length}`;
+        document.getElementById('contador').innerText = `SE ENCONTRARON ${pacientesGlobal.length} PACIENTES`;
         div.innerHTML = "";
         
         pacientesGlobal.forEach((p, i) => {
@@ -182,9 +173,9 @@
             item.id = `pac-row-${i}`;
             item.innerHTML = `
                 <div class="info">
-                    <b>${(p.NOMBRE || "SIN NOMBRE").replace(/"/g, "")}</b>
-                    <span>📅 ${(p.FECHA_CITA || "").replace(/"/g, "")} | ⏰ ${(p.TURNO || "").replace(/"/g, "")}</span>
-                    <span style="font-size:9px; color:var(--accent);">📍 ${(p.CONSULTORIO || "").replace(/"/g, "")}</span>
+                    <b>${p.NOMBRE.replace(/"/g, "")}</b>
+                    <span>📅 ${p.FECHA_CITA} | ⏰ ${p.TURNO}</span>
+                    <span style="color:var(--accent); font-weight:700">📍 ${p.CONSULTORIO}</span>
                 </div>
                 <div class="actions">
                     <a href="#" class="btn-send" onclick="enviarIndividual(${i})">ENVIAR</a>
@@ -201,7 +192,7 @@
         if (cel.length === 9) cel = "51" + cel;
 
         const extra = document.getElementById('msgAdicional').value.trim();
-        const msg = `Hola, le saludamos del Centro de Salud *Castillo Grande*. Le recordamos la cita de *${(p.NOMBRE || "").replace(/"/g, "")}* para el día *${(p.FECHA_CITA || "").replace(/"/g, "")}* en el turno *${(p.TURNO || "").replace(/"/g, "")}* (${(p.CONSULTORIO || "").replace(/"/g, "")}). Por favor, acuda puntualmente.${extra ? '\n\n📌 *Nota:* ' + extra : ''}`;
+        const msg = `Hola, le saludamos del Centro de Salud *Castillo Grande*. Le recordamos la cita de *${p.NOMBRE.replace(/"/g, "")}* para el día *${p.FECHA_CITA}* en el turno *${p.TURNO}* (${p.CONSULTORIO}). Por favor, acuda puntualmente.${extra ? '\n\n📌 *Nota:* ' + extra : ''}`;
         
         return `https://api.whatsapp.com/send?phone=${cel}&text=${encodeURIComponent(msg)}`;
     }
@@ -212,9 +203,8 @@
     }
 
     function reportarError(i) {
-        const cel = (pacientesGlobal[i].CELULAR || "").toString().replace(/"/g, "").trim();
+        const cel = (pacientesGlobal[i].CELULAR || "").toString().replace(/\D/g, "");
         fetch(`${SCRIPT_URL}?errorNum=${cel}`, { mode: 'no-cors' });
-        alert("Paciente marcado 'SIN WA' en la Columna Q del Excel.");
         marcarVisto(i, true);
     }
 
@@ -223,7 +213,7 @@
         if (indiceActual < pacientesGlobal.length) {
             btn.href = generarLink(indiceActual);
             btn.style.display = 'block';
-            btn.innerText = `SIGUIENTE: ${(pacientesGlobal[indiceActual].NOMBRE || "").replace(/"/g, "")}`;
+            btn.innerText = `ENVIAR A: ${pacientesGlobal[indiceActual].NOMBRE.split(' ')[0]}`;
         } else {
             btn.style.display = 'none';
         }
@@ -232,16 +222,17 @@
     function marcarSiguiente() {
         marcarVisto(indiceActual);
         indiceActual++;
-        setTimeout(prepararSiguiente, 800);
+        setTimeout(prepararSiguiente, 500);
     }
 
     function marcarVisto(i, err = false) {
         const row = document.getElementById(`pac-row-${i}`);
         if(row) {
-            row.style.opacity = "0.3";
-            row.style.background = err ? "#fff0f0" : "#f5f5f5";
-            const b = row.querySelector('.btn-send');
-            if(b) b.style.display = "none";
+            row.style.opacity = "0.4";
+            row.style.background = err ? "#fff0f0" : "#f0f0f0";
+            row.style.borderLeft = err ? "5px solid red" : "5px solid #ccc";
+            const btn = row.querySelector('.btn-send');
+            if(btn) btn.style.pointerEvents = "none";
         }
     }
 </script>
