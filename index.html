@@ -7,43 +7,32 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
     <style>
         :root { 
-            --dark: #075E54; 
-            --wa: #25D366; 
-            --accent: #00a884;
-            --glass: rgba(255, 255, 255, 0.9);
-            --error: #ef5350;
+            --dark: #075E54; --wa: #25D366; --accent: #00a884;
+            --glass: rgba(255, 255, 255, 0.9); --error: #ef5350;
         }
 
         body { 
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
-            margin: 0;
-            min-height: 100vh;
-            display: flex; 
-            justify-content: center; 
-            align-items: center;
-            background-color: #333;
+            font-family: 'Segoe UI', Roboto, sans-serif; margin: 0;
+            min-height: 100vh; display: flex; justify-content: center; 
+            align-items: center; background-color: #333;
         }
 
+        /* Slideshow restaurado */
         .slideshow {
-            position: fixed; width: 100%; height: 100%;
-            top: 0; left: 0; z-index: -1; list-style: none; margin: 0; padding: 0;
+            position: fixed; width: 100%; height: 100%; top: 0; left: 0;
+            z-index: -1; list-style: none; margin: 0; padding: 0;
         }
-
         .slideshow li { 
             width: 100%; height: 100%; position: absolute;
             background-size: cover; background-position: center;
             opacity: 0; animation: imageAnimation 36s linear infinite; 
         }
-
         .slideshow li:nth-child(1) { background-image: url('https://images.unsplash.com/photo-1584820923423-8f2df4777b71?auto=format&fit=crop&q=80&w=1600'); }
         .slideshow li:nth-child(2) { background-image: url('https://images.unsplash.com/photo-1532938911079-1b06ac7ceec7?auto=format&fit=crop&q=80&w=1600'); animation-delay: 12s; }
         .slideshow li:nth-child(3) { background-image: url('https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?auto=format&fit=crop&q=80&w=1600'); animation-delay: 24s; }
 
         @keyframes imageAnimation { 
-            0% { opacity: 0; }
-            8% { opacity: 1; }
-            33% { opacity: 1; }
-            41% { opacity: 0; }
+            0% { opacity: 0; } 8% { opacity: 1; } 33% { opacity: 1; } 41% { opacity: 0; } 
         }
 
         .card { 
@@ -52,15 +41,14 @@
             box-shadow: 0 15px 35px rgba(0,0,0,0.2); margin: 20px;
         }
 
-        h2 { color: var(--dark); text-align: center; font-weight: 800; }
+        h2 { color: var(--dark); text-align: center; margin-bottom: 25px; font-weight: 800; }
 
         .filtros { 
-            background: rgba(255,255,255,0.5); padding: 20px; 
-            border-radius: 18px; margin-bottom: 20px; 
+            background: rgba(255,255,255,0.5); padding: 20px; border-radius: 18px; 
+            margin-bottom: 20px; border: 1px solid rgba(0,0,0,0.05); 
         }
 
-        .filtros label { font-size: 11px; font-weight: 700; color: #444; display: block; margin-top: 10px; }
-
+        .filtros label { font-size: 11px; font-weight: 700; color: #444; display: block; margin-top: 10px; text-transform: uppercase; }
         .filtros input, .filtros select, .extra-msg { 
             padding: 12px; margin-top: 5px; width: 100%; border-radius: 10px; 
             border: 1px solid #ddd; box-sizing: border-box; font-size: 14px;
@@ -74,15 +62,14 @@
 
         .btn-next { 
             background: #ff9800; color: white; padding: 18px; width: 100%; 
-            border-radius: 12px; font-weight: 900; display: none; 
-            text-align: center; text-decoration: none; margin-bottom: 25px;
-            box-sizing: border-box;
+            border-radius: 12px; font-weight: 900; cursor: pointer; margin-bottom: 25px; 
+            display: none; text-align: center; text-decoration: none;
         }
 
         .tarjeta { 
             border: 1px solid rgba(0,0,0,0.05); padding: 15px; margin-bottom: 12px; 
             border-radius: 15px; display: flex; justify-content: space-between; 
-            align-items: center; background: white; 
+            align-items: center; background: white; transition: 0.3s;
         }
 
         .info b { display: block; text-transform: uppercase; font-size: 14px; color: var(--dark); }
@@ -96,6 +83,11 @@
         .btn-send { 
             background: var(--wa); color: white; text-decoration: none; 
             padding: 10px 16px; border-radius: 30px; font-size: 12px; font-weight: bold; 
+        }
+
+        .btn-no-wa {
+            background: #f4f4f4; color: #666; border: 1px solid #ddd;
+            padding: 6px 12px; border-radius: 20px; font-size: 10px; cursor: pointer;
         }
 
         #lista { max-height: 400px; overflow-y: auto; }
@@ -122,88 +114,77 @@
             <option value="TARDE">TARDE</option>
         </select>
 
-        <label>Consultorio:</label>
-        <select id="filtroConsultorio">
-            <option value="TODOS">-- TODOS LOS CONSULTORIOS --</option>
-        </select>
-
         <label>Mensaje Adicional:</label>
         <textarea id="msgAdicional" class="extra-msg" rows="2" placeholder="Ej: Traer carnet físico..."></textarea>
 
-        <button class="btn-main" onclick="cargarDatosDesdeScript()">Mostrar Listado</button>
+        <button class="btn-main" onclick="cargarDatos()">Mostrar Listado</button>
     </div>
     
-    <a id="btnSiguiente" href="#" target="_blank" class="btn-next" onclick="marcarSiguiente()">ENVIAR AL SIGUIENTE</a>
+    <a id="btnSiguiente" href="#" target="_blank" class="btn-next" onclick="marcarSiguiente()">ENVIAR AL SIGUIENTE PACIENTE</a>
 
     <div id="lista"></div>
 </div>
 
 <script>
-    // URL de tu Google Script (Backend)
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxORQP9UVrLtaqwYV6HhgvH2Mpi0iBQLkdBDPdJqNiF1nMi7CAHTC7IqoM7oRw3jU_TvQ/exec';
     
     let pacientesGlobal = [];
     let indiceActual = 0;
 
-    // Al cargar, llenamos los consultorios (puedes personalizarlos aquí)
-    window.onload = function() {
-        const consultorios = ["ENFERMERIA 1", "ENFERMERIA 2", "MEDICINA", "ODONTOLOGIA", "VACUNATORIO"];
-        const select = document.getElementById('filtroConsultorio');
-        consultorios.forEach(c => {
-            let opt = document.createElement('option');
-            opt.value = c; opt.innerHTML = c;
-            select.appendChild(opt);
-        });
-    };
-
-    async function cargarDatosDesdeScript() {
+    async function cargarDatos() {
         const fIni = document.getElementById('fechaInicio').value;
         const fFin = document.getElementById('fechaFin').value;
-        const cons = document.getElementById('filtroConsultorio').value;
-
         if (!fIni || !fFin) return alert("Selecciona fechas");
 
-        // Llamamos a la función de exportación de tu Script
-        const urlFetch = `${SCRIPT_URL}?exportar=true&desde=${fIni}&hasta=${fFin}&cons=${cons}`;
-        
-        const res = await fetch(urlFetch);
-        const csvText = await res.text();
+        document.querySelector('.btn-main').innerText = "Consultando...";
 
-        Papa.parse(csvText, {
-            header: true,
-            skipEmptyLines: true,
-            complete: function(results) {
-                // Adaptamos el filtrado a los nombres de columna de tu Script (A-P)
-                pacientesGlobal = results.data.filter(p => {
+        try {
+            const resp = await fetch(`${SCRIPT_URL}?exportar=true&desde=${fIni}&hasta=${fFin}&cons=TODOS`);
+            const csvText = await resp.text();
+
+            Papa.parse(csvText, {
+                header: true,
+                skipEmptyLines: true,
+                complete: function(results) {
                     const turnoSel = document.getElementById('filtroTurno').value;
-                    // p.TURNO y p.FECHA_CITA vienen de tu cabecera en generarExcelCitados
-                    const cumpleTurno = (turnoSel === "TODOS") || (p.TURNO.toUpperCase() === turnoSel);
-                    return p.CELULAR && cumpleTurno;
-                });
-                
-                indiceActual = 0;
-                mostrarLista();
-                prepararSiguiente();
-            }
-        });
+                    const hoy = new Date().toLocaleDateString('es-PE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+
+                    pacientesGlobal = results.data.filter(p => {
+                        const cumpleTurno = (turnoSel === "TODOS") || (p.TURNO && p.TURNO.toUpperCase() === turnoSel);
+                        return p.CELULAR && cumpleTurno;
+                    });
+
+                    indiceActual = 0;
+                    document.querySelector('.btn-main').innerText = "Mostrar Listado";
+                    mostrarLista(hoy);
+                    prepararSiguiente();
+                }
+            });
+        } catch (e) {
+            alert("Error de conexión");
+            document.querySelector('.btn-main').innerText = "Mostrar Listado";
+        }
     }
 
-    function mostrarLista() {
+    function mostrarLista(hoyStr) {
         const div = document.getElementById('lista');
-        div.innerHTML = `<p style="text-align:center; font-size:12px;">Total: ${pacientesGlobal.length}</p>`;
+        div.innerHTML = `<p style="text-align:center; font-size:12px; margin-bottom:10px;">Pacientes: <b>${pacientesGlobal.length}</b></p>`;
         
         pacientesGlobal.forEach((p, i) => {
+            const esHoy = (p.FECHA_CITA === hoyStr);
             const item = document.createElement('div');
             item.className = 'tarjeta';
-            item.id = `paciente-${i}`;
+            item.id = `pac-row-${i}`;
             item.innerHTML = `
                 <div class="info">
                     <b>${p.NOMBRE}</b>
                     <span>📅 ${p.FECHA_CITA} | ⏰ ${p.TURNO}</span>
-                    <span style="font-size:10px; color:var(--accent);">📍 ${p.CONSULTORIO}</span>
+                    <span style="font-size:10px; color:var(--dark);">📍 ${p.CONSULTORIO}</span>
+                    ${esHoy ? '<span class="hoy-badge">CITA PARA HOY</span>' : ''}
                 </div>
-                <div class="actions">
+                <div class="actions" style="display:flex; flex-direction:column; gap:5px; align-items:flex-end;">
                     <a href="#" class="btn-send" onclick="enviarIndividual(${i})">ENVIAR</a>
+                    <button class="btn-no-wa" onclick="reportarNoWa(${i})">❌ NO WA</button>
                 </div>
             `;
             div.appendChild(item);
@@ -211,21 +192,29 @@
     }
 
     function generarLink(p) {
-        // Limpiamos el celular por si trae caracteres extra
         let tel = p.CELULAR.toString().replace(/\D/g, "");
         if (tel.length === 9) tel = "51" + tel;
 
         const extra = document.getElementById('msgAdicional').value.trim();
         const nota = extra ? `\n\n📌 *Nota:* ${extra}` : "";
+        const fechaTxt = p.FECHA_CITA;
 
-        const msg = `Hola, le saludamos del Centro de Salud *Castillo Grande*. Se le recuerda la cita CRED de *${p.NOMBRE}* para el día *${p.FECHA_CITA}* en el turno *${p.TURNO}* (${p.CONSULTORIO}). Por favor, acuda puntualmente.${nota}`;
+        const msg = `Le saludo del Centro de Salud *Castillo Grande*, mamita de *${p.NOMBRE}*, se le recuerda la cita CRED para el *${fechaTxt}* en el turno *${p.TURNO}* en el *CONSULTORIO: ${p.CONSULTORIO}*. Por favor, no falte.${nota}\n\nTambién le invitamos a nuestro sistema: https://desarrolloinfantiltemprano-dit.github.io/casita/`;
         
         return `https://api.whatsapp.com/send?phone=${tel}&text=${encodeURIComponent(msg)}`;
     }
 
     function enviarIndividual(i) {
         window.open(generarLink(pacientesGlobal[i]), '_blank');
-        marcarComoEnviado(i);
+        marcarHecho(i);
+    }
+
+    function reportarNoWa(i) {
+        const p = pacientesGlobal[i];
+        // Esta función asume que tienes el parámetro errorNum en tu GAS
+        fetch(`${SCRIPT_URL}?errorNum=${p.CELULAR}`, { mode: 'no-cors' });
+        alert(`Reportado: ${p.NOMBRE} sin WhatsApp.`);
+        marcarHecho(i, true);
     }
 
     function prepararSiguiente() {
@@ -240,16 +229,17 @@
     }
 
     function marcarSiguiente() {
-        marcarComoEnviado(indiceActual);
+        marcarHecho(indiceActual);
         indiceActual++;
         setTimeout(prepararSiguiente, 1000);
     }
 
-    function marcarComoEnviado(i) {
-        const tarjeta = document.getElementById(`paciente-${i}`);
-        if(tarjeta) {
-            tarjeta.style.opacity = "0.4";
-            tarjeta.querySelector('.btn-send').style.display = "none";
+    function marcarHecho(i, isError = false) {
+        const row = document.getElementById(`pac-row-${i}`);
+        if(row) {
+            row.style.opacity = "0.4";
+            row.style.background = isError ? "#ffeeee" : "#f0f0f0";
+            row.querySelector('.actions').innerHTML = `<span style="color:${isError?'red':'green'}; font-weight:bold; font-size:12px;">${isError?'❌ MARCADO':'✅ ENVIADO'}</span>`;
         }
     }
 </script>
