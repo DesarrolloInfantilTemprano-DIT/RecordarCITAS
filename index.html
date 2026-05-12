@@ -3,42 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SISTEMA CITAS V6.8 - Castillo Grande</title>
+    <title>SISTEMA RECUERDA CITA CRED V6.8</title>
+    <!-- Mantenemos tus librerías externas -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
     <style>
         :root { --dark: #075E54; --wa: #25D366; --accent: #00a884; --error: #ef5350; }
-        body { font-family: 'Segoe UI', sans-serif; background-color: #333; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; overflow-x: hidden; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #333; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; overflow-x: hidden; }
         
+        /* Mantenemos tu slideshow original */
         .slideshow { position: fixed; width: 100%; height: 100%; top: 0; left: 0; z-index: -1; list-style: none; margin: 0; padding: 0; }
-        .slideshow li { width: 100%; height: 100%; position: absolute; background-size: cover; background-position: center; opacity: 0; animation: imageAnimation 36s linear infinite; }
+        .slideshow li { width: 100%; height: 100%; position: absolute; background-size: cover; background-position: center; background-repeat: no-repeat; opacity: 0; z-index: 0; animation: imageAnimation 36s linear infinite; }
         .slideshow li:nth-child(1) { background-image: url('https://images.unsplash.com/photo-1584820923423-8f2df4777b71?q=80&w=1600'); }
         .slideshow li:nth-child(2) { background-image: url('https://images.unsplash.com/photo-1532938911079-1b06ac7ceec7?q=80&w=1600'); animation-delay: 12s; }
-        @keyframes imageAnimation { 0% { opacity: 0; } 8% { opacity: 1; } 33% { opacity: 1; } 41% { opacity: 0; } }
+        @keyframes imageAnimation { 0% { opacity: 0; animation-timing-function: ease-in; } 8% { opacity: 1; animation-timing-function: ease-out; } 33% { opacity: 1; } 41% { opacity: 0; } 100% { opacity: 0; } }
 
-        .card { background: rgba(255, 255, 255, 0.96); padding: 25px; border-radius: 25px; width: 95%; max-width: 480px; box-shadow: 0 15px 45px rgba(0,0,0,0.6); backdrop-filter: blur(10px); position: relative; }
+        .card { background: rgba(255, 255, 255, 0.96); padding: 25px; border-radius: 25px; width: 95%; max-width: 480px; box-shadow: 0 15px 45px rgba(0,0,0,0.6); backdrop-filter: blur(10px); position: relative; z-index: 1; border: 1px solid rgba(255,255,255,0.3); }
         h2 { color: var(--dark); text-align: center; text-transform: uppercase; font-weight: 800; font-size: 20px; margin-bottom: 20px; letter-spacing: 1px; }
         
         .filtros { display: flex; flex-direction: column; gap: 10px; background: white; padding: 15px; border-radius: 15px; border: 1px solid #eee; }
         label { font-size: 10px; font-weight: 800; color: #777; text-transform: uppercase; margin-bottom: -5px; margin-left: 5px; }
         input, select, textarea { padding: 12px; border-radius: 10px; border: 1px solid #ddd; width: 100%; box-sizing: border-box; font-size: 14px; outline: none; transition: 0.3s; resize: none; }
-        input:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 8px rgba(0,168,132,0.2); }
         
-        .btn-main { background: var(--accent); color: white; border: none; padding: 15px; border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 10px; text-transform: uppercase; width: 100%; font-size: 14px; }
-        .btn-main:active { transform: scale(0.98); }
+        .btn-main { background: var(--accent); color: white; border: none; padding: 15px; border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 10px; text-transform: uppercase; width: 100%; font-size: 14px; transition: 0.3s; }
+        .btn-main:hover { background: var(--dark); }
         
-        .btn-next { background: #ff9800; color: white; padding: 18px; border-radius: 15px; text-align: center; text-decoration: none; display: none; font-weight: 900; margin-bottom: 15px; box-shadow: 0 5px 15px rgba(255,152,0,0.4); text-transform: uppercase; font-size: 13px; }
+        .btn-next { background: #ff9800; color: white; padding: 18px; border-radius: 15px; text-align: center; text-decoration: none; display: none; font-weight: 900; margin-bottom: 15px; box-shadow: 0 5px 15px rgba(255,152,0,0.4); text-transform: uppercase; font-size: 13px; border: 2px solid white; }
 
         .tarjeta { background: white; border-radius: 15px; padding: 15px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; border-left: 6px solid var(--accent); box-shadow: 0 4px 12px rgba(0,0,0,0.05); transition: 0.3s; }
         .info b { display: block; color: var(--dark); font-size: 13px; text-transform: uppercase; line-height: 1.2; }
         .info span { font-size: 11px; color: #666; display: block; margin-top: 4px; }
 
         .actions { display: flex; flex-direction: column; gap: 8px; align-items: flex-end; }
-        .btn-send { background: var(--wa); color: white; text-decoration: none; padding: 8px 16px; border-radius: 20px; font-size: 11px; font-weight: bold; transition: 0.3s; }
+        .btn-send { background: var(--wa); color: white; text-decoration: none; padding: 8px 16px; border-radius: 20px; font-size: 11px; font-weight: bold; transition: 0.3s; box-shadow: 0 3px 8px rgba(37,211,102,0.3); }
         .btn-error { background: #fdfdfd; color: #bbb; border: 1px solid #eee; padding: 5px 10px; border-radius: 8px; font-size: 9px; cursor: pointer; font-weight: bold; }
 
         #lista { max-height: 320px; overflow-y: auto; margin-top: 15px; padding-right: 8px; }
-        #lista::-webkit-scrollbar { width: 4px; }
-        #lista::-webkit-scrollbar-thumb { background: #ddd; border-radius: 10px; }
         #contador { text-align: center; font-size: 11px; color: #888; margin: 12px 0; font-weight: bold; }
     </style>
 </head>
@@ -50,10 +49,15 @@
     <h2>RECUERDA CITAS CRED</h2>
     
     <div class="filtros">
-        <label>Rango de Fecha:</label>
         <div style="display: flex; gap: 8px;">
-            <input type="date" id="fechaInicio">
-            <input type="date" id="fechaFin">
+            <div style="flex:1">
+                <label>Desde:</label>
+                <input type="date" id="fechaInicio">
+            </div>
+            <div style="flex:1">
+                <label>Hasta:</label>
+                <input type="date" id="fechaFin">
+            </div>
         </div>
         
         <label>Consultorio:</label>
@@ -69,7 +73,7 @@
         </select>
 
         <label>Mensaje Adicional:</label>
-        <textarea id="msgAdicional" rows="2" placeholder="Ej: Traer carnet de vacunación..."></textarea>
+        <textarea id="msgAdicional" rows="2" placeholder="Ej: Traer carnet de vacunación y DNI físico..."></textarea>
 
         <button class="btn-main" onclick="cargarDatos()">Consultar Citados</button>
     </div>
@@ -86,30 +90,29 @@
     let pacientesGlobal = [];
     let indiceActual = 0;
 
-    // --- NORMALIZACIÓN PARA FORMATO DD/MM/AAAA (SEGÚN IMAGEN) ---
+    // --- FUNCIÓN DE NORMALIZACIÓN TOTAL (CORRIGE EL ERROR DE MIGRACIÓN) ---
     function normalizarFecha(str) {
         if (!str) return null;
+        // Limpiamos espacios, comillas y tomamos solo la parte de la fecha
         let limpio = str.toString().replace(/"/g, "").trim().split(" ")[0];
-        let dia, mes, año;
+        let d, m, y;
 
-        // Si el Excel usa "/" (como se ve en la imagen de Google Sheets)
         if (limpio.includes("/")) {
             let partes = limpio.split("/");
-            // Formato DD/MM/AAAA
-            dia = partes[0].padStart(2, '0');
-            mes = partes[1].padStart(2, '0');
-            año = partes[2];
-            return `${año}-${mes}-${dia}`;
-        } 
-        // Si por alguna razón el CSV llega con "-"
-        else if (limpio.includes("-")) {
+            if (partes[0].length === 4) { [y, m, d] = partes; } // YYYY/MM/DD
+            else { [d, m, y] = partes; } // DD/MM/YYYY
+        } else if (limpio.includes("-")) {
             let partes = limpio.split("-");
-            if (partes[0].length === 4) return limpio; // Ya es YYYY-MM-DD
-            return `${partes[2]}-${partes[1].padStart(2,'0')}-${partes[0].padStart(2,'0')}`;
-        }
-        return null;
+            if (partes[0].length === 4) { [y, m, d] = partes; } // YYYY-MM-DD
+            else { [d, m, y] = partes; } // DD-MM-YYYY
+        } else { return null; }
+
+        // Asegurar año de 4 dígitos y meses/días de 2 dígitos
+        if (y.length === 2) y = "20" + y;
+        return `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
     }
 
+    // Carga inicial de consultorios
     window.onload = async () => {
         try {
             const resp = await fetch(`${SCRIPT_URL}?getFiltros=true`);
@@ -117,24 +120,27 @@
             const select = document.getElementById('filtroConsultorio');
             select.innerHTML = '<option value="TODOS">-- TODOS LOS CONSULTORIOS --</option>';
             if(data.consultorios) {
-                data.consultorios.forEach(c => { if(c) select.innerHTML += `<option value="${c}">${c}</option>`; });
+                data.consultorios.forEach(c => {
+                    if(c) select.innerHTML += `<option value="${c}">${c}</option>`;
+                });
             }
-        } catch(e) { console.error("Error filtros"); }
+        } catch(e) { console.error("Error al cargar consultorios"); }
     };
 
     async function cargarDatos() {
         const btn = document.querySelector('.btn-main');
         const fIni = document.getElementById('fechaInicio').value;
         const fFin = document.getElementById('fechaFin').value;
-        const cons = document.getElementById('filtroConsultorio').value;
+        const consSel = document.getElementById('filtroConsultorio').value;
+        const turnoSel = document.getElementById('filtroTurno').value;
 
-        if (!fIni || !fFin) return alert("Por favor, selecciona las fechas");
+        if (!fIni || !fFin) return alert("Por favor, selecciona un rango de fechas.");
 
-        btn.innerText = "Buscando...";
+        btn.innerText = "BUSCANDO...";
         btn.disabled = true;
 
         try {
-            const url = `${SCRIPT_URL}?exportar=true&cons=${encodeURIComponent(cons)}`;
+            const url = `${SCRIPT_URL}?exportar=true&cons=${encodeURIComponent(consSel)}`;
             const resp = await fetch(url);
             const csvText = await resp.text();
 
@@ -142,16 +148,17 @@
                 header: true,
                 skipEmptyLines: true,
                 complete: function(results) {
-                    const turnoSel = document.getElementById('filtroTurno').value;
-
                     pacientesGlobal = results.data.filter(p => {
-                        const fechaNorm = normalizarFecha(p.FECHA_CITA);
-                        const turnoP = (p.TURNO || "").toUpperCase().trim().replace(/"/g, "");
-                        const cel = (p.CELULAR || "").toString().replace(/"/g, "").trim();
+                        // Intentamos obtener la fecha de varias columnas posibles
+                        const fechaRaw = p["FECHA DE CITA"] || p.FECHA_CITA || p.FECHA;
+                        const fNormal = normalizarFecha(fechaRaw);
+                        
+                        // Limpieza agresiva del celular (quita guiones, espacios, etc)
+                        const cel = (p.CELULAR || "").toString().replace(/[^\d]/g, "").trim();
+                        const turno = (p.TURNO || "").toUpperCase().trim().replace(/"/g, "");
 
-                        // Comparación estricta YYYY-MM-DD
-                        const cumpleFecha = (fechaNorm && fechaNorm >= fIni && fechaNorm <= fFin);
-                        const cumpleTurno = (turnoSel === "TODOS" || turnoP === turnoSel);
+                        const cumpleFecha = (fNormal >= fIni && fNormal <= fFin);
+                        const cumpleTurno = (turnoSel === "TODOS" || turno === turnoSel);
                         
                         return cel !== "" && cumpleFecha && cumpleTurno;
                     });
@@ -159,14 +166,17 @@
                     indiceActual = 0;
                     btn.innerText = "Consultar Citados";
                     btn.disabled = false;
+                    
+                    if(pacientesGlobal.length === 0) {
+                        alert("No hay citas para ese rango de fechas.");
+                    }
+                    
                     mostrarLista();
                     prepararSiguiente();
-                    
-                    if (pacientesGlobal.length === 0) alert("No hay citas para ese rango de fechas.");
                 }
             });
         } catch (err) {
-            alert("Error al cargar datos.");
+            alert("Error de conexión con el servidor.");
             btn.innerText = "Consultar Citados";
             btn.disabled = false;
         }
@@ -184,11 +194,11 @@
             item.innerHTML = `
                 <div class="info">
                     <b>${(p.NOMBRE || "SIN NOMBRE").replace(/"/g, "")}</b>
-                    <span>📅 ${(p.FECHA_CITA || "").replace(/"/g, "")} | ⏰ ${(p.TURNO || "").replace(/"/g, "")}</span>
-                    <span style="font-size:9px; color:var(--accent);">📍 ${(p.CONSULTORIO || "").replace(/"/g, "")}</span>
+                    <span>📅 ${(p["FECHA DE CITA"] || p.FECHA_CITA || "").replace(/"/g, "")} | ⏰ ${(p.TURNO || "").replace(/"/g, "")}</span>
+                    <span style="font-size:9px; color:var(--accent);">📍 ${(p.CONSULTORIO || "GENERAL").replace(/"/g, "")}</span>
                 </div>
                 <div class="actions">
-                    <a href="#" class="btn-send" onclick="enviarIndividual(${i})">ENVIAR</a>
+                    <a href="#" class="btn-send" onclick="enviarIndividual(${i})">ENVIAR WA</a>
                     <button class="btn-error" onclick="reportarError(${i})">SIN WA</button>
                 </div>
             `;
@@ -198,11 +208,11 @@
 
     function generarLink(i) {
         const p = pacientesGlobal[i];
-        let cel = (p.CELULAR || "").toString().replace(/\D/g, "");
+        let cel = (p.CELULAR || "").toString().replace(/[^\d]/g, ""); 
         if (cel.length === 9) cel = "51" + cel;
 
         const extra = document.getElementById('msgAdicional').value.trim();
-        const msg = `Hola, le saludamos del Centro de Salud *Castillo Grande*. Le recordamos la cita de *${(p.NOMBRE || "").replace(/"/g, "")}* para el día *${(p.FECHA_CITA || "").replace(/"/g, "")}* en el turno *${(p.TURNO || "").replace(/"/g, "")}* (${(p.CONSULTORIO || "").replace(/"/g, "")}). Por favor, acuda puntualmente.${extra ? '\n\n📌 *Nota:* ' + extra : ''}`;
+        const msg = `Hola, le saludamos del Centro de Salud *Castillo Grande*. Le recordamos la cita de *${(p.NOMBRE || "").replace(/"/g, "")}* para el día *${(p["FECHA DE CITA"] || p.FECHA_CITA || "").replace(/"/g, "")}* en el turno *${(p.TURNO || "").replace(/"/g, "")}* (${(p.CONSULTORIO || "").replace(/"/g, "")}). Por favor, acuda puntualmente.${extra ? '\n\n📌 *Nota:* ' + extra : ''}`;
         
         return `https://api.whatsapp.com/send?phone=${cel}&text=${encodeURIComponent(msg)}`;
     }
@@ -213,9 +223,9 @@
     }
 
     function reportarError(i) {
-        const cel = (pacientesGlobal[i].CELULAR || "").toString().replace(/"/g, "").trim();
+        const cel = (pacientesGlobal[i].CELULAR || "").toString().replace(/[^\d]/g, "").trim();
         fetch(`${SCRIPT_URL}?errorNum=${cel}`, { mode: 'no-cors' });
-        alert("Reportado como SIN WhatsApp.");
+        alert("Número marcado sin WhatsApp.");
         marcarVisto(i, true);
     }
 
@@ -224,7 +234,7 @@
         if (indiceActual < pacientesGlobal.length) {
             btn.href = generarLink(indiceActual);
             btn.style.display = 'block';
-            btn.innerText = `ENVIAR A: ${(pacientesGlobal[indiceActual].NOMBRE || "").replace(/"/g, "")}`;
+            btn.innerText = `ENVIAR A: ${(pacientesGlobal[indiceActual].NOMBRE || "").substring(0, 20)}...`;
         } else {
             btn.style.display = 'none';
         }
@@ -236,13 +246,13 @@
         setTimeout(prepararSiguiente, 800);
     }
 
-    function marcarVisto(i, err = false) {
+    function marcarVisto(i, error = false) {
         const row = document.getElementById(`pac-row-${i}`);
         if(row) {
             row.style.opacity = "0.3";
-            row.style.background = err ? "#fff0f0" : "#f5f5f5";
-            const b = row.querySelector('.btn-send');
-            if(b) b.style.display = "none";
+            row.style.background = error ? "#fff0f0" : "#f5f5f5";
+            const btn = row.querySelector('.btn-send');
+            if(btn) btn.style.display = "none";
         }
     }
 </script>
