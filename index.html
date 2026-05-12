@@ -104,11 +104,10 @@
             }
         } catch(e) {
             select.innerHTML = '<option value="TODOS">-- TODOS LOS CONSULTORIOS --</option>';
-            console.error("Error cargando filtros:", e);
         }
     };
 
-    // 2. PETICIÓN DE DATOS (Mapeo basado en tu Script: DNI, NOMBRE, CELULAR, FECHA_CITA...)
+    // 2. PETICIÓN DE DATOS (CORREGIDO PARA FECHAS)
     async function cargarDatos() {
         const btn = document.querySelector('.btn-main');
         const fIni = document.getElementById('fechaInicio').value;
@@ -121,7 +120,8 @@
         btn.disabled = true;
 
         try {
-            const url = `${SCRIPT_URL}?exportar=true&desde=${fIni}&hasta=${fFin}&cons=${cons}`;
+            // El Script espera yyyy-MM-dd, los inputs de fecha ya lo dan así
+            const url = `${SCRIPT_URL}?exportar=true&desde=${fIni}&hasta=${fFin}&cons=${encodeURIComponent(cons)}`;
             const resp = await fetch(url);
             const csvText = await resp.text();
 
@@ -131,11 +131,12 @@
                 complete: function(results) {
                     const turnoSel = document.getElementById('filtroTurno').value;
 
-                    // Ajuste de filtros según los nombres exactos de tu Script
+                    // Filtramos por turno y aseguramos que el celular exista
                     pacientesGlobal = results.data.filter(p => {
                         const t = (p.TURNO || "").toUpperCase().trim();
-                        const cel = p.CELULAR;
-                        return cel && (turnoSel === "TODOS" || t === turnoSel);
+                        // Limpiamos comillas que el Script a veces añade al CSV
+                        const cel = (p.CELULAR || "").toString().replace(/"/g, "").trim();
+                        return cel !== "" && (turnoSel === "TODOS" || t === turnoSel);
                     });
 
                     indiceActual = 0;
@@ -153,17 +154,18 @@
         }
     }
 
-    // 3. MOSTRAR PACIENTES (Uso de FECHA_CITA según tu Script)
+    // 3. MOSTRAR PACIENTES
     function mostrarLista() {
         const div = document.getElementById('lista');
         document.getElementById('contador').innerText = `PACIENTES ENCONTRADOS: ${pacientesGlobal.length}`;
         div.innerHTML = "";
         
         pacientesGlobal.forEach((p, i) => {
-            const nombreP = p.NOMBRE || "Sin Nombre";
-            const fechaP = p.FECHA_CITA || "---";
-            const turnoP = p.TURNO || "";
-            const consultorioP = p.CONSULTORIO || "";
+            // Limpieza de datos (quitar comillas del CSV)
+            const nombreP = (p.NOMBRE || "Sin Nombre").replace(/"/g, "");
+            const fechaP = (p.FECHA_CITA || "---").replace(/"/g, "");
+            const turnoP = (p.TURNO || "").replace(/"/g, "");
+            const consultorioP = (p.CONSULTORIO || "").replace(/"/g, "");
 
             const item = document.createElement('div');
             item.className = 'tarjeta';
@@ -190,10 +192,10 @@
         if (cel.length === 9) cel = "51" + cel;
 
         const extra = document.getElementById('msgAdicional').value.trim();
-        const nom = p.NOMBRE || "";
-        const fec = p.FECHA_CITA || "";
-        const tur = p.TURNO || "";
-        const con = p.CONSULTORIO || "";
+        const nom = (p.NOMBRE || "").replace(/"/g, "");
+        const fec = (p.FECHA_CITA || "").replace(/"/g, "");
+        const tur = (p.TURNO || "").replace(/"/g, "");
+        const con = (p.CONSULTORIO || "").replace(/"/g, "");
 
         const msg = `Hola, le saludamos del Centro de Salud *Castillo Grande*. Le recordamos la cita de *${nom}* para el día *${fec}* en el turno *${tur}* (${con}). Por favor, acuda puntualmente.${extra ? '\n\n📌 *Nota:* ' + extra : ''}`;
         
@@ -205,21 +207,19 @@
         marcarVisto(i);
     }
 
-    // 5. REPORTE A COLUMNA Q
     function reportarError(i) {
-        const cel = pacientesGlobal[i].CELULAR;
+        const cel = (pacientesGlobal[i].CELULAR || "").toString().replace(/"/g, "").trim();
         fetch(`${SCRIPT_URL}?errorNum=${cel}`, { mode: 'no-cors' });
         alert("Reportado en Columna Q");
         marcarVisto(i, true);
     }
 
-    // 6. FLUJO CONTINUO
     function prepararSiguiente() {
         const btn = document.getElementById('btnSiguiente');
         if (indiceActual < pacientesGlobal.length) {
             btn.href = generarLink(indiceActual);
             btn.style.display = 'block';
-            btn.innerText = `SIGUIENTE: ${pacientesGlobal[indiceActual].NOMBRE || ""}`;
+            btn.innerText = `SIGUIENTE: ${(pacientesGlobal[indiceActual].NOMBRE || "").replace(/"/g, "")}`;
         } else {
             btn.style.display = 'none';
         }
