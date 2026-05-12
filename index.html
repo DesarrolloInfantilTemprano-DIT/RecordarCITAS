@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CITAS CRED - Gestión Profesional</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <style>
+        :root { 
+            --dark: #075E54; 
+            --wa: #25D366; 
+            --accent: #00a884;
+            --glass: rgba(255, 255, 255, 0.9);
+            --error: #ef5350;
+        }
+
+        body { 
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+            margin: 0;
+            min-height: 100vh;
+            display: flex; 
+            justify-content: center; 
+            align-items: center;
+            overflow-x: hidden;
+            background-color: #333;
+        }
+
+        .slideshow {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0; left: 0;
+            z-index: -1;
+            list-style: none;
+            margin: 0; padding: 0;
+        }
+
+        .slideshow li { 
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0; left: 0;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            opacity: 0;
+            z-index: 0;
+            animation: imageAnimation 36s linear infinite; 
+        }
+
+        .slideshow li:nth-child(1) { background-image: url('https://images.unsplash.com/photo-1584820923423-8f2df4777b71?auto=format&fit=crop&q=80&w=1600'); }
+        .slideshow li:nth-child(2) { background-image: url('https://images.unsplash.com/photo-1532938911079-1b06ac7ceec7?auto=format&fit=crop&q=80&w=1600'); animation-delay: 12s; }
+        .slideshow li:nth-child(3) { background-image: url('https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?auto=format&fit=crop&q=80&w=1600'); animation-delay: 24s; }
+
+        @keyframes imageAnimation { 
+            0% { opacity: 0; animation-timing-function: ease-in; }
+            8% { opacity: 1; animation-timing-function: ease-out; }
+            33% { opacity: 1; }
+            41% { opacity: 0; }
+            100% { opacity: 0; }
+        }
+
+        .card { 
+            max-width: 500px; 
+            width: 90%; 
+            background: var(--glass); 
+            backdrop-filter: blur(10px);
+            padding: 30px; 
+            border-radius: 25px; 
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2); 
+            margin: 20px;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+
+        h2 { 
+            color: var(--dark); 
+            text-align: center; 
+            margin-bottom: 25px; 
+            letter-spacing: 1px;
+            font-weight: 800;
+        }
+
+        .filtros { 
+            background: rgba(255,255,255,0.5); 
+            padding: 20px; 
+            border-radius: 18px; 
+            margin-bottom: 20px; 
+            border: 1px solid rgba(0,0,0,0.05); 
+        }
+
+        .filtros label { 
+            font-size: 11px; 
+            font-weight: 700; 
+            color: #444; 
+            display: block; 
+            margin-top: 10px; 
+            text-transform: uppercase;
+        }
+
+        .filtros input, .filtros select, .extra-msg { 
+            padding: 12px; 
+            margin-top: 5px; 
+            width: 100%; 
+            border-radius: 10px; 
+            border: 1px solid #ddd; 
+            box-sizing: border-box; 
+            font-size: 14px;
+            transition: 0.3s;
+        }
+
+        .extra-msg {
+            resize: none;
+            font-family: inherit;
+            background: white;
+        }
+
+        .btn-main { 
+            background: linear-gradient(135deg, var(--dark), var(--accent));
+            color: white; 
+            border: none; 
+            padding: 16px; 
+            width: 100%; 
+            border-radius: 12px; 
+            font-weight: bold; 
+            cursor: pointer; 
+            margin-top: 20px; 
+            transition: 0.3s;
+            text-transform: uppercase;
+        }
+
+        .btn-next { 
+            background: #ff9800; 
+            color: white; 
+            border: none; 
+            padding: 18px; 
+            width: 100%; 
+            border-radius: 12px; 
+            font-weight: 900; 
+            cursor: pointer; 
+            margin-bottom: 25px; 
+            display: none; 
+            text-align: center; 
+            text-decoration: none; 
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.02); } 100% { transform: scale(1); } }
+
+        .tarjeta { 
+            border: 1px solid rgba(0,0,0,0.05); 
+            padding: 15px; 
+            margin-bottom: 12px; 
+            border-radius: 15px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            background: white; 
+            transition: 0.3s;
+        }
+
+        .info b { display: block; text-transform: uppercase; font-size: 14px; color: var(--dark); }
+        .info span { font-size: 12px; color: #777; display: block; margin-top: 2px; }
+        
+        .hoy-badge { 
+            background: var(--error); 
+            color: white; 
+            padding: 3px 8px; 
+            border-radius: 6px; 
+            font-size: 10px; 
+            font-weight: bold; 
+            margin-top: 6px; 
+            display: inline-block; 
+        }
+
+        .actions {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            align-items: flex-end;
+        }
+
+        .btn-send { 
+            background: var(--wa); 
+            color: white; 
+            text-decoration: none; 
+            padding: 10px 16px; 
+            border-radius: 30px; 
+            font-size: 12px; 
+            font-weight: bold; 
+            text-align: center;
+            min-width: 80px;
+        }
+
+        .btn-no-wa {
+            background: #f4f4f4;
+            color: #666;
+            border: 1px solid #ddd;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .btn-no-wa:hover {
+            background: var(--error);
+            color: white;
+            border-color: var(--error);
+        }
+
+        #lista { max-height: 400px; overflow-y: auto; padding-right: 5px; }
+    </style>
+</head>
+<body>
+
+<ul class="slideshow">
+    <li></li><li></li><li></li>
+</ul>
+
+<div class="card">
+    <h2>RECUERDA CITAS CRED</h2>
+    
+    <div class="filtros">
+        <label>Rango de Fecha:</label>
+        <div style="display: flex; gap: 10px;">
+            <input type="date" id="fechaInicio">
+            <input type="date" id="fechaFin">
+        </div>
+        
+        <label>Turno de Atención:</label>
+        <select id="filtroTurno">
+            <option value="TODOS">TODOS LOS TURNOS</option>
+            <option value="Mañana">MAÑANA</option>
+            <option value="Tarde">TARDE</option>
+        </select>
+
+        <label>Establecimiento (EESS):</label>
+        <select id="filtroEESS">
+            <option value="TODOS">-- TODOS LOS EESS --</option>
+        </select>
+
+        <label>Consultorio:</label>
+        <select id="filtroConsultorio">
+            <option value="TODOS">-- TODOS LOS CONSULTORIOS --</option>
+        </select>
+
+        <label>Mensaje Adicional para todos:</label>
+        <textarea id="msgAdicional" class="extra-msg" rows="2" placeholder="Ej: Traer carnet físico y DNI del menor..."></textarea>
+
+        <button class="btn-main" onclick="cargarExcel()">Mostrar Listado</button>
+    </div>
+    
+    <a id="btnSiguiente" href="#" target="_blank" class="btn-next" onclick="marcarSiguiente()">ENVIAR AL SIGUIENTE PACIENTE</a>
+
+    <div id="lista"></div>
+</div>
+
+<script>
+    const URL_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT-kCdER9NTPl29MALvc5Bam5N-UniBAH-OqP5GusOdT9wbJyQ5XQs-Qt66L6ds9ZxW1sUtZ9L7z4pW/pub?gid=0&single=true&output=csv';
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbye8k93u2HrGI6Y_LwD_4PVG7n-sGT49BD9CRoD-JuBAInplvX-yJ1jdnKJFPosLwM/exec'; // <--- PEGA TU URL DE GOOGLE SCRIPT AQUÍ
+    
+    let pacientesGlobal = [];
+    let indiceActual = 0;
+
+    window.onload = function() {
+        Papa.parse(URL_CSV, {
+            download: true,
+            header: true,
+            complete: function(res) {
+                const selectEESS = document.getElementById('filtroEESS');
+                const eessUnicos = [...new Set(res.data.map(p => p.EESS).filter(Boolean))];
+                eessUnicos.sort().forEach(eess => {
+                    let opt = document.createElement('option');
+                    opt.value = eess;
+                    opt.innerHTML = eess;
+                    selectEESS.appendChild(opt);
+                });
+
+                const selectCons = document.getElementById('filtroConsultorio');
+                const consUnicos = [...new Set(res.data.map(p => p.CONSULTORIO).filter(Boolean))];
+                consUnicos.sort().forEach(c => {
+                    let opt = document.createElement('option');
+                    opt.value = c;
+                    opt.innerHTML = c;
+                    selectCons.appendChild(opt);
+                });
+            }
+        });
+    };
+
+    function cargarExcel() {
+        const fInicio = document.getElementById('fechaInicio').value;
+        const fFin = document.getElementById('fechaFin').value;
+        const turnoSeleccionado = document.getElementById('filtroTurno').value;
+        const eessSeleccionado = document.getElementById('filtroEESS').value;
+        const consultorioSeleccionado = document.getElementById('filtroConsultorio').value;
+
+        if (!fInicio || !fFin) {
+            alert("Por favor, selecciona un rango de fechas.");
+            return;
+        }
+
+        Papa.parse(URL_CSV, {
+            download: true,
+            header: true,
+            skipEmptyLines: true,
+            complete: function(res) {
+                pacientesGlobal = res.data.filter(p => {
+                    if (!p['FECHA DE CITA'] || !p.CELULAR || !p.TURNO) return false;
+                    
+                    const partes = p['FECHA DE CITA'].split('/');
+                    const fechaPaciente = new Date(partes[2], partes[1] - 1, partes[0]);
+                    const dInicio = new Date(fInicio + "T00:00:00");
+                    const dFin = new Date(fFin + "T23:59:59");
+                    
+                    const cumpleFecha = fechaPaciente >= dInicio && fechaPaciente <= dFin;
+                    const cumpleTurno = (turnoSeleccionado === "TODOS") || (p.TURNO.trim() === turnoSeleccionado);
+                    const cumpleEESS = (eessSeleccionado === "TODOS") || (p.EESS === eessSeleccionado);
+                    const cumpleCons = (consultorioSeleccionado === "TODOS") || (p.CONSULTORIO === consultorioSeleccionado);
+
+                    return cumpleFecha && cumpleTurno && cumpleEESS && cumpleCons;
+                });
+                indiceActual = 0;
+                mostrarLista();
+                prepararSiguiente();
+            }
+        });
+    }
+
+    function mostrarLista() {
+        const div = document.getElementById('lista');
+        div.innerHTML = `<p style="text-align:center; color:#666; font-size: 13px; margin-bottom: 15px;">Pacientes: <b>${pacientesGlobal.length}</b></p>`;
+        const hoy = new Date();
+        const hoyStr = `${hoy.getDate().toString().padStart(2, '0')}/${(hoy.getMonth() + 1).toString().padStart(2, '0')}/${hoy.getFullYear()}`;
+
+        pacientesGlobal.forEach((p, i) => {
+            const esHoy = (p['FECHA DE CITA'].trim() === hoyStr);
+            const item = document.createElement('div');
+            item.className = 'tarjeta';
+            item.id = `paciente-${i}`;
+            item.innerHTML = `
+                <div class="info">
+                    <b>${p.NOMBRE}</b>
+                    <span>📅 ${p['FECHA DE CITA']} | ⏰ ${p.TURNO}</span>
+                    <span style="font-size:10px; color:var(--dark); font-weight:bold;">📍 ${p.EESS} - CONS: ${p.CONSULTORIO}</span>
+                    ${esHoy ? '<span class="hoy-badge">CITA PARA HOY</span>' : ''}
+                </div>
+                <div class="actions">
+                    <a href="#" class="btn-send" onclick="enviarIndividual(${i})">ENVIAR</a>
+                    <button class="btn-no-wa" onclick="reportarError(${i})">❌ NO WA</button>
+                </div>
+            `;
+            div.appendChild(item);
+        });
+    }
+
+    function prepararSiguiente() {
+        if (indiceActual < pacientesGlobal.length) {
+            const p = pacientesGlobal[indiceActual];
+            const btn = document.getElementById('btnSiguiente');
+            btn.href = generarLink(p);
+            btn.style.display = 'block';
+            btn.innerText = `SIGUIENTE: ${p.NOMBRE}`;
+        } else {
+            document.getElementById('btnSiguiente').style.display = 'none';
+        }
+    }
+
+    function generarLink(p) {
+        const hoy = new Date();
+        const hoyStr = `${hoy.getDate().toString().padStart(2, '0')}/${(hoy.getMonth() + 1).toString().padStart(2, '0')}/${hoy.getFullYear()}`;
+        const esHoy = (p['FECHA DE CITA'].trim() === hoyStr);
+        const fechaTxt = esHoy ? "*HOY*" : `el *${p['FECHA DE CITA']}*`;
+        
+        const extraMsg = document.getElementById('msgAdicional').value.trim();
+        const textoExtra = extraMsg ? `\n\n📌 *Nota:* ${extraMsg}` : "";
+
+        const msg = `Le saludo del Centro de Salud *${p.EESS}*, mamita de *${p.NOMBRE}*, se le recuerda la cita CRED para el ${fechaTxt} en el turno *${p.TURNO}* en el *CONSULTORIO: ${p.CONSULTORIO}*. Por favor, no falte.${textoExtra}\n\nTambién le invitamos a nuestro sistema de RECUERDA CITAS CRED: https://desarrolloinfantiltemprano-dit.github.io/casita/\nPara recibir actualizaciones, únete al grupo: https://chat.whatsapp.com/FELCvT889zo265G8LkVkPY`;
+        
+        return `https://api.whatsapp.com/send?phone=51${p.CELULAR.trim()}&text=${encodeURIComponent(msg)}`;
+    }
+
+    function enviarIndividual(i) {
+        const p = pacientesGlobal[i];
+        window.open(generarLink(p), '_blank');
+        marcarComoEnviado(i);
+    }
+
+    function reportarError(i) {
+        const p = pacientesGlobal[i];
+        const tarjeta = document.getElementById(`paciente-${i}`);
+        
+        // Efecto visual de carga
+        tarjeta.style.borderLeft = "10px solid var(--error)";
+        
+        fetch(`${SCRIPT_URL}?errorNum=${p.CELULAR.trim()}`, { mode: 'no-cors' })
+            .then(() => {
+                alert(`Reportado: El número de ${p.NOMBRE} se marcó como 'SIN WHATSAPP' en el Excel.`);
+                marcarComoEnviado(i, true);
+            })
+            .catch(err => alert("Error al conectar con el Excel. Verifica la URL del Script."));
+    }
+
+    function marcarSiguiente() {
+        marcarComoEnviado(indiceActual);
+        indiceActual++;
+        setTimeout(prepararSiguiente, 1000);
+    }
+
+    function marcarComoEnviado(i, isError = false) {
+        const tarjeta = document.getElementById(`paciente-${i}`);
+        if(tarjeta) {
+            tarjeta.style.background = isError ? "#ffebee" : "#f0f0f0";
+            tarjeta.style.opacity = "0.6";
+            const btn = tarjeta.querySelector('.btn-send');
+            const btnErr = tarjeta.querySelector('.btn-no-wa');
+            if(btn) btn.style.display = "none";
+            if(btnErr) btnErr.style.display = "none";
+            
+            const check = document.createElement('span');
+            check.innerHTML = isError ? "❌ Marcado" : "✅ Enviado";
+            check.style.fontSize = "12px";
+            check.style.fontWeight = "bold";
+            check.style.color = isError ? "red" : "green";
+            tarjeta.querySelector('.actions').appendChild(check);
+        }
+    }
+</script>
+</body>
+</html>
