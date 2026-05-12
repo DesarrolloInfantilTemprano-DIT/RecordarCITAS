@@ -85,7 +85,6 @@
 </div>
 
 <script>
-    // URL DE TU SCRIPT
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzdVky8yEUEeAXaD7YzKHpA1-SYh5ZExbqetuMcZY8PMyhq4Jg6ihsalc84-bI1IXVmTg/exec';
     
     let pacientesGlobal = [];
@@ -108,7 +107,7 @@
         }
     };
 
-    // 2. PETICIÓN DE DATOS (Mapeo flexible basado en image_8fc689.png)
+    // 2. PETICIÓN DE DATOS
     async function cargarDatos() {
         const btn = document.querySelector('.btn-main');
         const fIni = document.getElementById('fechaInicio').value;
@@ -131,10 +130,8 @@
                 complete: function(results) {
                     const turnoSel = document.getElementById('filtroTurno').value;
 
-                    // Filtrado con nombres de columna flexibles
                     pacientesGlobal = results.data.filter(p => {
                         const t = (p.TURNO || p['TURNO'] || "").toUpperCase().trim();
-                        // Busca celular en cualquier variante de nombre de columna
                         const cel = p.CELULAR || p['CELULAR'];
                         return cel && (turnoSel === "TODOS" || t === turnoSel);
                     });
@@ -154,18 +151,17 @@
         }
     }
 
-    // 3. MOSTRAR PACIENTES (Ajustado para leer FECHA_CITA o FECHA DE CITA)
+    // 3. MOSTRAR PACIENTES
     function mostrarLista() {
         const div = document.getElementById('lista');
         document.getElementById('contador').innerText = `PACIENTES ENCONTRADOS: ${pacientesGlobal.length}`;
         div.innerHTML = "";
         
         pacientesGlobal.forEach((p, i) => {
-            // Mapeo de datos para asegurar que se lean aunque el nombre de la columna varíe
-            const nombreP = p.NOMBRE || p['NOMBRE'];
-            const fechaP = p.FECHA DE CITA || p['FECHA_CITA'] || p['FECHA DE CITA'];
-            const turnoP = p.TURNO || p['TURNO'];
-            const consultorioP = p.CONSULTORIO || p['CONSULTORIO'];
+            const nombreP = p.NOMBRE || p['NOMBRE'] || "Sin Nombre";
+            const fechaP = p['FECHA DE CITA'] || p['FECHA_CITA'] || "---";
+            const turnoP = p.TURNO || p['TURNO'] || "";
+            const consultorioP = p.CONSULTORIO || p['CONSULTORIO'] || "";
 
             const item = document.createElement('div');
             item.className = 'tarjeta';
@@ -192,13 +188,12 @@
         if (cel.length === 9) cel = "51" + cel;
 
         const extra = document.getElementById('msgAdicional').value.trim();
-        const nota = extra ? `\n\n📌 *Nota:* ${extra}` : "";
         const nom = p.NOMBRE || p['NOMBRE'];
-        const fec = p.FECHA DE CITA || p['FECHA_CITA'] || p['FECHA DE CITA'];
+        const fec = p['FECHA DE CITA'] || p['FECHA_CITA'];
         const tur = p.TURNO || p['TURNO'];
         const con = p.CONSULTORIO || p['CONSULTORIO'];
 
-        const msg = `Hola, le saludamos del Centro de Salud *Castillo Grande*. Le recordamos la cita de *${nom}* para el día *${fec}* en el turno *${tur}* (${con}). Por favor, acuda puntualmente.${nota}`;
+        const msg = `Hola, le saludamos del Centro de Salud *Castillo Grande*. Le recordamos la cita de *${nom}* para el día *${fec}* en el turno *${tur}* (${con}). Por favor, acuda puntualmente.${extra ? '\n\n📌 *Nota:* ' + extra : ''}`;
         
         return `https://api.whatsapp.com/send?phone=${cel}&text=${encodeURIComponent(msg)}`;
     }
@@ -239,7 +234,8 @@
         if(row) {
             row.style.opacity = "0.3";
             row.style.background = err ? "#fff0f0" : "#f5f5f5";
-            row.querySelector('.btn-send').style.display = "none";
+            const btnS = row.querySelector('.btn-send');
+            if(btnS) btnS.style.display = "none";
         }
     }
 </script>
