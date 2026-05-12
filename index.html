@@ -21,7 +21,7 @@
         
         .filtros { display: flex; flex-direction: column; gap: 10px; background: white; padding: 15px; border-radius: 15px; border: 1px solid #eee; }
         label { font-size: 10px; font-weight: 800; color: #777; text-transform: uppercase; margin-bottom: -5px; margin-left: 5px; }
-        input, select, textarea { padding: 12px; border-radius: 10px; border: 1px solid #ddd; width: 100%; box-sizing: border-box; font-size: 14px; outline: none; transition: 0.3s; }
+        input, select, textarea { padding: 12px; border-radius: 10px; border: 1px solid #ddd; width: 100%; box-sizing: border-box; font-size: 14px; outline: none; transition: 0.3s; resize: none; }
         input:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 8px rgba(0,168,132,0.2); }
         
         .btn-main { background: var(--accent); color: white; border: none; padding: 15px; border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 10px; text-transform: uppercase; width: 100%; font-size: 14px; }
@@ -87,24 +87,26 @@
     let pacientesGlobal = [];
     let indiceActual = 0;
 
-    // --- FUNCIÓN DE NORMALIZACIÓN DE FECHAS (Indispensable para reconocer el Excel) ---
+    // --- FUNCIÓN DE NORMALIZACIÓN MEJORADA ---
     function normalizarFecha(str) {
         if (!str) return null;
         let limpio = str.toString().replace(/"/g, "").trim().split(" ")[0];
-        let partes;
+        let dia, mes, año;
+
         if (limpio.includes("/")) {
-            partes = limpio.split("/");
-            if (partes[0].length === 4) return `${partes[0]}-${partes[1].padStart(2,'0')}-${partes[2].padStart(2,'0')}`;
-            return `${partes[2]}-${partes[1].padStart(2,'0')}-${partes[0].padStart(2,'0')}`;
+            let partes = limpio.split("/");
+            if (partes[0].length === 4) { [año, mes, dia] = partes; }
+            else { [dia, mes, año] = partes; }
         } else if (limpio.includes("-")) {
-            partes = limpio.split("-");
-            if (partes[0].length === 4) return limpio;
-            return `${partes[2]}-${partes[1].padStart(2,'0')}-${partes[0].padStart(2,'0')}`;
-        }
-        return limpio;
+            let partes = limpio.split("-");
+            if (partes[0].length === 4) { [año, mes, dia] = partes; }
+            else { [dia, mes, año] = partes; }
+        } else { return null; }
+
+        // Retorna YYYY-MM-DD para comparar correctamente con el input date
+        return `${año}-${mes.padStart(2, '0')}-${dia.padStart(2, '0')}`;
     }
 
-    // 1. CARGA DE CONSULTORIOS
     window.onload = async () => {
         try {
             const resp = await fetch(`${SCRIPT_URL}?getFiltros=true`);
@@ -117,14 +119,13 @@
         } catch(e) { console.error("Error filtros"); }
     };
 
-    // 2. BUSQUEDA DE DATOS
     async function cargarDatos() {
         const btn = document.querySelector('.btn-main');
         const fIni = document.getElementById('fechaInicio').value;
         const fFin = document.getElementById('fechaFin').value;
         const cons = document.getElementById('filtroConsultorio').value;
 
-        if (!fIni || !fFin) return alert("Selecciona fechas");
+        if (!fIni || !fFin) return alert("Selecciona el rango de fechas");
 
         btn.innerText = "Buscando...";
         btn.disabled = true;
@@ -141,12 +142,16 @@
                     const turnoSel = document.getElementById('filtroTurno').value;
 
                     pacientesGlobal = results.data.filter(p => {
-                        const fechaNorm = normalizarFecha(p.FECHA_CITA);
+                        // Limpieza de datos del CSV
+                        const fechaRaw = p.FECHA_CITA || "";
+                        const fechaNorm = normalizarFecha(fechaRaw);
                         const turnoP = (p.TURNO || "").toUpperCase().trim().replace(/"/g, "");
                         const cel = (p.CELULAR || "").toString().replace(/"/g, "").trim();
 
+                        // Lógica de filtrado
                         const cumpleFecha = (fechaNorm >= fIni && fechaNorm <= fFin);
                         const cumpleTurno = (turnoSel === "TODOS" || turnoP === turnoSel);
+                        
                         return cel !== "" && cumpleFecha && cumpleTurno;
                     });
 
@@ -155,15 +160,17 @@
                     btn.disabled = false;
                     mostrarLista();
                     prepararSiguiente();
+                    
+                    if(pacientesGlobal.length === 0) alert("No se encontraron citas en este rango.");
                 }
             });
         } catch (err) {
-            alert("Error de red");
+            alert("Error de conexión");
+            btn.innerText = "Consultar Citados";
             btn.disabled = false;
         }
     }
 
-    // 3. RENDERIZADO DE LISTA
     function mostrarLista() {
         const div = document.getElementById('lista');
         document.getElementById('contador').innerText = `ENCONTRADOS: ${pacientesGlobal.length}`;
@@ -175,7 +182,7 @@
             item.id = `pac-row-${i}`;
             item.innerHTML = `
                 <div class="info">
-                    <b>${(p.NOMBRE || "S/N").replace(/"/g, "")}</b>
+                    <b>${(p.NOMBRE || "SIN NOMBRE").replace(/"/g, "")}</b>
                     <span>📅 ${(p.FECHA_CITA || "").replace(/"/g, "")} | ⏰ ${(p.TURNO || "").replace(/"/g, "")}</span>
                     <span style="font-size:9px; color:var(--accent);">📍 ${(p.CONSULTORIO || "").replace(/"/g, "")}</span>
                 </div>
@@ -188,7 +195,6 @@
         });
     }
 
-    // 4. LOGICA WHATSAPP
     function generarLink(i) {
         const p = pacientesGlobal[i];
         let cel = (p.CELULAR || "").toString().replace(/\D/g, "");
@@ -205,15 +211,13 @@
         marcarVisto(i);
     }
 
-    // 5. REPORTE A COLUMNA Q (SIN WA)
     function reportarError(i) {
         const cel = (pacientesGlobal[i].CELULAR || "").toString().replace(/"/g, "").trim();
         fetch(`${SCRIPT_URL}?errorNum=${cel}`, { mode: 'no-cors' });
-        alert("Número marcado como SIN WA en el Excel (Columna Q)");
+        alert("Número marcado como SIN WA.");
         marcarVisto(i, true);
     }
 
-    // 6. FLUJO CONTINUO
     function prepararSiguiente() {
         const btn = document.getElementById('btnSiguiente');
         if (indiceActual < pacientesGlobal.length) {
