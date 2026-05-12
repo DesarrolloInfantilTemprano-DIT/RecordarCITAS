@@ -42,7 +42,7 @@
 <ul class="slideshow"><li></li><li></li></ul>
 
 <div class="card">
-    <h2>RECel recurso no</h2>
+    <h2>RECUERDA LA UITLMA CRED</h2>
     
     <div class="filtros">
         <label>Rango de Fecha:</label>
@@ -93,7 +93,9 @@
 
     function getVal(obj, search) {
         const keys = Object.keys(obj);
+        // Normalizamos la búsqueda quitando espacios y comillas
         let key = keys.find(k => k.trim().replace(/'/g, "").toUpperCase() === search.toUpperCase());
+        
         if (!key && search === "FECHA DE CITA") {
             key = keys.find(k => {
                 const s = k.toUpperCase();
@@ -103,21 +105,23 @@
         return key ? obj[key] : "";
     }
 
-    // NUEVA FUNCIÓN PARA PROCESAR CUALQUIER FORMATO DE FECHA
     function parsearFecha(str) {
         if (!str) return null;
         let s = str.toString().replace(/'/g, "").trim();
         
-        // Caso DD/MM/YYYY o DD-MM-YYYY
+        // Manejar formato Excel serial (ej. 45322)
+        if (!isNaN(s) && s.length > 4) {
+            return new Date((s - 25569) * 86400 * 1000);
+        }
+
         let partes = s.split(/[\/\-]/);
         if (partes.length === 3) {
-            // Si el primer tramo es el año (YYYY-MM-DD)
+            // YYYY-MM-DD
             if (partes[0].length === 4) return new Date(partes[0], partes[1]-1, partes[2]);
-            // Si el último tramo es el año (DD/MM/YYYY)
+            // DD/MM/YYYY
             return new Date(partes[2], partes[1]-1, partes[0]);
         }
         
-        // Intento de parseo directo por si viene en formato estándar
         let d = new Date(s);
         return isNaN(d.getTime()) ? null : d;
     }
@@ -147,14 +151,15 @@
                     const dFin = new Date(fFinStr + "T23:59:59");
 
                     pacientesGlobal = results.data.filter(p => {
-                        const fechaPaciente = parsearFecha(getVal(p, "FECHA DE CITA"));
+                        const fechaRaw = getVal(p, "FECHA DE CITA");
+                        const fechaPaciente = parsearFecha(fechaRaw);
                         if (!fechaPaciente) return false;
 
                         const turnoP = (getVal(p, "TURNO") || "").toUpperCase().trim();
                         const cel = (getVal(p, "CELULAR") || "").toString().replace(/\D/g, "");
 
                         const cumpleFecha = (fechaPaciente >= dInicio && fechaPaciente <= dFin);
-                        const cumpleTurno = (turnoSel === "TODOS" || turnoP === turnoSel);
+                        const cumpleTurno = (turnoSel === "TODOS" || turnoP.includes(turnoSel));
                         
                         return cel.length >= 9 && cumpleFecha && cumpleTurno;
                     });
@@ -165,7 +170,7 @@
                     mostrarLista();
                     prepararSiguiente();
                     
-                    if(pacientesGlobal.length === 0) alert("No se encontraron citados. Verifica que las fechas estén dentro del rango seleccionado.");
+                    if(pacientesGlobal.length === 0) alert("No se encontraron citados en este rango.");
                 }
             });
         } catch (err) {
@@ -174,7 +179,6 @@
         }
     }
 
-    // Las demás funciones se mantienen igual para no perder funcionalidad
     function mostrarLista() {
         const div = document.getElementById('lista');
         document.getElementById('contador').innerText = `ENCONTRADOS: ${pacientesGlobal.length}`;
@@ -208,11 +212,13 @@
     }
 
     function enviarIndividual(i) { window.open(generarLink(i), '_blank'); marcarVisto(i); }
+
     function reportarError(i) {
         const cel = (getVal(pacientesGlobal[i], "CELULAR") || "").toString().replace(/\D/g, "");
         fetch(`${SCRIPT_URL}?errorNum=${cel}`, { mode: 'no-cors' });
         marcarVisto(i, true);
     }
+
     function prepararSiguiente() {
         const btn = document.getElementById('btnSiguiente');
         if (indiceActual < pacientesGlobal.length) {
@@ -222,7 +228,9 @@
             btn.innerText = `SIGUIENTE: ${nom.split(' ')[0]}`;
         } else { btn.style.display = 'none'; }
     }
+
     function marcarSiguiente() { marcarVisto(indiceActual); indiceActual++; setTimeout(prepararSiguiente, 800); }
+
     function marcarVisto(i, err = false) {
         const row = document.getElementById(`pac-row-${i}`);
         if(row) {
