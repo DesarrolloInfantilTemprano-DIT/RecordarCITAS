@@ -3,110 +3,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CITAS CRED - Gestión Profesional</title>
+    <title>SISTEMA CITAS V6.7 - Castillo Grande</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
     <style>
-        :root { 
-            --dark: #075E54; --wa: #25D366; --accent: #00a884;
-            --glass: rgba(255, 255, 255, 0.9); --error: #ef5350;
-        }
-
-        body { 
-            font-family: 'Segoe UI', Roboto, sans-serif; margin: 0;
-            min-height: 100vh; display: flex; justify-content: center; 
-            align-items: center; background-color: #333;
-        }
-
-        /* Slideshow restaurado */
-        .slideshow {
-            position: fixed; width: 100%; height: 100%; top: 0; left: 0;
-            z-index: -1; list-style: none; margin: 0; padding: 0;
-        }
-        .slideshow li { 
-            width: 100%; height: 100%; position: absolute;
-            background-size: cover; background-position: center;
-            opacity: 0; animation: imageAnimation 36s linear infinite; 
-        }
-        .slideshow li:nth-child(1) { background-image: url('https://images.unsplash.com/photo-1584820923423-8f2df4777b71?auto=format&fit=crop&q=80&w=1600'); }
-        .slideshow li:nth-child(2) { background-image: url('https://images.unsplash.com/photo-1532938911079-1b06ac7ceec7?auto=format&fit=crop&q=80&w=1600'); animation-delay: 12s; }
-        .slideshow li:nth-child(3) { background-image: url('https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?auto=format&fit=crop&q=80&w=1600'); animation-delay: 24s; }
-
-        @keyframes imageAnimation { 
-            0% { opacity: 0; } 8% { opacity: 1; } 33% { opacity: 1; } 41% { opacity: 0; } 
-        }
-
-        .card { 
-            max-width: 500px; width: 90%; background: var(--glass); 
-            backdrop-filter: blur(10px); padding: 30px; border-radius: 25px; 
-            box-shadow: 0 15px 35px rgba(0,0,0,0.2); margin: 20px;
-        }
-
-        h2 { color: var(--dark); text-align: center; margin-bottom: 25px; font-weight: 800; }
-
-        .filtros { 
-            background: rgba(255,255,255,0.5); padding: 20px; border-radius: 18px; 
-            margin-bottom: 20px; border: 1px solid rgba(0,0,0,0.05); 
-        }
-
-        .filtros label { font-size: 11px; font-weight: 700; color: #444; display: block; margin-top: 10px; text-transform: uppercase; }
-        .filtros input, .filtros select, .extra-msg { 
-            padding: 12px; margin-top: 5px; width: 100%; border-radius: 10px; 
-            border: 1px solid #ddd; box-sizing: border-box; font-size: 14px;
-        }
-
-        .btn-main { 
-            background: linear-gradient(135deg, var(--dark), var(--accent));
-            color: white; border: none; padding: 16px; width: 100%; 
-            border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 20px;
-        }
-
-        .btn-next { 
-            background: #ff9800; color: white; padding: 18px; width: 100%; 
-            border-radius: 12px; font-weight: 900; cursor: pointer; margin-bottom: 25px; 
-            display: none; text-align: center; text-decoration: none;
-        }
-
-        .tarjeta { 
-            border: 1px solid rgba(0,0,0,0.05); padding: 15px; margin-bottom: 12px; 
-            border-radius: 15px; display: flex; justify-content: space-between; 
-            align-items: center; background: white; transition: 0.3s;
-        }
-
-        .info b { display: block; text-transform: uppercase; font-size: 14px; color: var(--dark); }
-        .info span { font-size: 12px; color: #777; display: block; }
+        :root { --dark: #075E54; --wa: #25D366; --accent: #00a884; --error: #ef5350; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: #333; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
         
-        .hoy-badge { 
-            background: var(--error); color: white; padding: 3px 8px; 
-            border-radius: 6px; font-size: 10px; font-weight: bold; margin-top: 6px; display: inline-block; 
-        }
+        /* Slideshow de fondo */
+        .slideshow { position: fixed; width: 100%; height: 100%; top: 0; left: 0; z-index: -1; list-style: none; margin: 0; padding: 0; }
+        .slideshow li { width: 100%; height: 100%; position: absolute; background-size: cover; background-position: center; opacity: 0; animation: imageAnimation 36s linear infinite; }
+        .slideshow li:nth-child(1) { background-image: url('https://images.unsplash.com/photo-1584820923423-8f2df4777b71?q=80&w=1600'); }
+        .slideshow li:nth-child(2) { background-image: url('https://images.unsplash.com/photo-1532938911079-1b06ac7ceec7?q=80&w=1600'); animation-delay: 12s; }
+        @keyframes imageAnimation { 0% { opacity: 0; } 8% { opacity: 1; } 33% { opacity: 1; } 41% { opacity: 0; } }
 
-        .btn-send { 
-            background: var(--wa); color: white; text-decoration: none; 
-            padding: 10px 16px; border-radius: 30px; font-size: 12px; font-weight: bold; 
-        }
+        .card { background: rgba(255, 255, 255, 0.96); padding: 25px; border-radius: 25px; width: 95%; max-width: 480px; box-shadow: 0 15px 45px rgba(0,0,0,0.6); backdrop-filter: blur(10px); }
+        h2 { color: var(--dark); text-align: center; text-transform: uppercase; font-weight: 800; margin-bottom: 20px; font-size: 1.2rem; }
+        
+        .filtros { display: flex; flex-direction: column; gap: 10px; background: white; padding: 15px; border-radius: 15px; border: 1px solid #eee; }
+        label { font-size: 10px; font-weight: 800; color: #777; text-transform: uppercase; margin-bottom: -5px; }
+        input, select, textarea { padding: 10px; border-radius: 8px; border: 1px solid #ddd; width: 100%; box-sizing: border-box; font-size: 14px; }
+        
+        .btn-main { background: #00a884; color: white; border: none; padding: 15px; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 10px; text-transform: uppercase; width: 100%; transition: 0.3s; }
+        .btn-main:hover { background: var(--dark); }
+        
+        .btn-next { background: #ff9800; color: white; padding: 18px; border-radius: 12px; text-align: center; text-decoration: none; display: none; font-weight: 900; margin-bottom: 15px; box-shadow: 0 5px 15px rgba(255,152,0,0.3); }
 
-        .btn-no-wa {
-            background: #f4f4f4; color: #666; border: 1px solid #ddd;
-            padding: 6px 12px; border-radius: 20px; font-size: 10px; cursor: pointer;
-        }
+        .tarjeta { background: white; border-radius: 12px; padding: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border-left: 5px solid var(--accent); border: 1px solid #eee; }
+        .info b { display: block; color: var(--dark); font-size: 13px; text-transform: uppercase; }
+        .info span { font-size: 11px; color: #666; display: block; }
 
-        #lista { max-height: 400px; overflow-y: auto; }
+        .actions { display: flex; flex-direction: column; gap: 6px; align-items: flex-end; }
+        .btn-send { background: var(--wa); color: white; text-decoration: none; padding: 8px 15px; border-radius: 20px; font-size: 11px; font-weight: bold; }
+        .btn-err { background: #f9f9f9; color: #999; border: 1px solid #ddd; padding: 4px 8px; border-radius: 5px; font-size: 9px; cursor: pointer; }
+
+        #lista { max-height: 300px; overflow-y: auto; margin-top: 15px; padding-right: 5px; }
     </style>
 </head>
 <body>
 
-<ul class="slideshow"><li></li><li></li><li></li></ul>
+<ul class="slideshow"><li></li><li></li></ul>
 
 <div class="card">
     <h2>RECUERDA CITAS CRED</h2>
     
     <div class="filtros">
         <label>Rango de Fecha:</label>
-        <div style="display: flex; gap: 10px;">
+        <div style="display: flex; gap: 8px;">
             <input type="date" id="fechaInicio">
             <input type="date" id="fechaFin">
         </div>
         
+        <label>Consultorio (Dinámico):</label>
+        <select id="filtroConsultorio">
+            <option value="TODOS">Cargando consultorios...</option>
+        </select>
+
         <label>Turno:</label>
         <select id="filtroTurno">
             <option value="TODOS">TODOS LOS TURNOS</option>
@@ -115,31 +66,51 @@
         </select>
 
         <label>Mensaje Adicional:</label>
-        <textarea id="msgAdicional" class="extra-msg" rows="2" placeholder="Ej: Traer carnet físico..."></textarea>
+        <textarea id="msgAdicional" rows="2" placeholder="Ej: Traer DNI físico..."></textarea>
 
         <button class="btn-main" onclick="cargarDatos()">Mostrar Listado</button>
     </div>
     
-    <a id="btnSiguiente" href="#" target="_blank" class="btn-next" onclick="marcarSiguiente()">ENVIAR AL SIGUIENTE PACIENTE</a>
+    <p id="contador" style="text-align:center; font-size:11px; color:#888; margin: 12px 0;"></p>
+    <a id="btnSiguiente" href="#" target="_blank" class="btn-next" onclick="marcarSiguiente()">ENVIAR AL SIGUIENTE</a>
 
     <div id="lista"></div>
 </div>
 
 <script>
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxORQP9UVrLtaqwYV6HhgvH2Mpi0iBQLkdBDPdJqNiF1nMi7CAHTC7IqoM7oRw3jU_TvQ/exec';
-    
     let pacientesGlobal = [];
     let indiceActual = 0;
 
+    // 1. CARGA DINÁMICA DE CONSULTORIOS AL INICIAR
+    window.onload = async () => {
+        try {
+            const resp = await fetch(`${SCRIPT_URL}?getFiltros=true`);
+            const data = await resp.json();
+            const select = document.getElementById('filtroConsultorio');
+            select.innerHTML = '<option value="TODOS">-- TODOS LOS CONSULTORIOS --</option>';
+            data.consultorios.forEach(c => {
+                if(c) select.innerHTML += `<option value="${c}">${c}</option>`;
+            });
+        } catch(e) {
+            document.getElementById('filtroConsultorio').innerHTML = '<option value="TODOS">ERROR DE CARGA</option>';
+        }
+    };
+
+    // 2. PETICIÓN DE DATOS AL SCRIPT
     async function cargarDatos() {
+        const btn = document.querySelector('.btn-main');
         const fIni = document.getElementById('fechaInicio').value;
         const fFin = document.getElementById('fechaFin').value;
-        if (!fIni || !fFin) return alert("Selecciona fechas");
+        const cons = document.getElementById('filtroConsultorio').value;
 
-        document.querySelector('.btn-main').innerText = "Consultando...";
+        if (!fIni || !fFin) return alert("Selecciona el rango de fechas.");
+        btn.innerText = "Consultando...";
+        btn.disabled = true;
 
         try {
-            const resp = await fetch(`${SCRIPT_URL}?exportar=true&desde=${fIni}&hasta=${fFin}&cons=TODOS`);
+            const url = `${SCRIPT_URL}?exportar=true&desde=${fIni}&hasta=${fFin}&cons=${cons}`;
+            const resp = await fetch(url);
             const csvText = await resp.text();
 
             Papa.parse(csvText, {
@@ -147,76 +118,79 @@
                 skipEmptyLines: true,
                 complete: function(results) {
                     const turnoSel = document.getElementById('filtroTurno').value;
-                    const hoy = new Date().toLocaleDateString('es-PE', { day: '2-digit', month: '2-digit', year: 'numeric' });
-
+                    // Filtramos respetando el blindaje de N, O y P
                     pacientesGlobal = results.data.filter(p => {
-                        const cumpleTurno = (turnoSel === "TODOS") || (p.TURNO && p.TURNO.toUpperCase() === turnoSel);
-                        return p.CELULAR && cumpleTurno;
+                        const t = (p.TURNO || "").toUpperCase();
+                        return (p.CELULAR || p['CELULAR']) && (turnoSel === "TODOS" || t === turnoSel);
                     });
 
                     indiceActual = 0;
-                    document.querySelector('.btn-main').innerText = "Mostrar Listado";
-                    mostrarLista(hoy);
+                    btn.innerText = "Mostrar Listado";
+                    btn.disabled = false;
+                    mostrarLista();
                     prepararSiguiente();
                 }
             });
-        } catch (e) {
-            alert("Error de conexión");
-            document.querySelector('.btn-main').innerText = "Mostrar Listado";
+        } catch (err) {
+            alert("Error de conexión con el Excel.");
+            btn.innerText = "Mostrar Listado";
+            btn.disabled = false;
         }
     }
 
-    function mostrarLista(hoyStr) {
+    // 3. RENDERIZADO DE LA LISTA
+    function mostrarLista() {
         const div = document.getElementById('lista');
-        div.innerHTML = `<p style="text-align:center; font-size:12px; margin-bottom:10px;">Pacientes: <b>${pacientesGlobal.length}</b></p>`;
+        document.getElementById('contador').innerText = `Pacientes en lista: ${pacientesGlobal.length}`;
+        div.innerHTML = "";
         
         pacientesGlobal.forEach((p, i) => {
-            const esHoy = (p.FECHA_CITA === hoyStr);
             const item = document.createElement('div');
             item.className = 'tarjeta';
             item.id = `pac-row-${i}`;
             item.innerHTML = `
                 <div class="info">
                     <b>${p.NOMBRE}</b>
-                    <span>📅 ${p.FECHA_CITA} | ⏰ ${p.TURNO}</span>
-                    <span style="font-size:10px; color:var(--dark);">📍 ${p.CONSULTORIO}</span>
-                    ${esHoy ? '<span class="hoy-badge">CITA PARA HOY</span>' : ''}
+                    <span>📅 ${p.FECHA_CITA || p['FECHA DE CITA']} | ⏰ ${p.TURNO}</span>
+                    <span style="font-size:9px;">📍 ${p.CONSULTORIO}</span>
                 </div>
-                <div class="actions" style="display:flex; flex-direction:column; gap:5px; align-items:flex-end;">
+                <div class="actions">
                     <a href="#" class="btn-send" onclick="enviarIndividual(${i})">ENVIAR</a>
-                    <button class="btn-no-wa" onclick="reportarNoWa(${i})">❌ NO WA</button>
-                </div>
-            `;
+                    <button class="btn-err" onclick="reportarSinWa(${i})">SIN WA</button>
+                </div>`;
             div.appendChild(item);
         });
     }
 
+    // 4. GENERACIÓN DE LINK WHATSAPP
     function generarLink(p) {
-        let tel = p.CELULAR.toString().replace(/\D/g, "");
-        if (tel.length === 9) tel = "51" + tel;
+        let cel = (p.CELULAR || p['CELULAR']).toString().replace(/\D/g, "");
+        if (cel.length === 9) cel = "51" + cel;
 
         const extra = document.getElementById('msgAdicional').value.trim();
         const nota = extra ? `\n\n📌 *Nota:* ${extra}` : "";
-        const fechaTxt = p.FECHA_CITA;
+        const nom = p.NOMBRE;
+        const fec = p.FECHA_CITA || p['FECHA DE CITA'];
 
-        const msg = `Le saludo del Centro de Salud *Castillo Grande*, mamita de *${p.NOMBRE}*, se le recuerda la cita CRED para el *${fechaTxt}* en el turno *${p.TURNO}* en el *CONSULTORIO: ${p.CONSULTORIO}*. Por favor, no falte.${nota}\n\nTambién le invitamos a nuestro sistema: https://desarrolloinfantiltemprano-dit.github.io/casita/`;
-        
-        return `https://api.whatsapp.com/send?phone=${tel}&text=${encodeURIComponent(msg)}`;
+        const msg = `Hola, recordamos la cita CRED de *${nom}* para el día *${fec}* en el turno *${p.TURNO}*. Por favor, confirme su asistencia.${nota}`;
+        return `https://api.whatsapp.com/send?phone=${cel}&text=${encodeURIComponent(msg)}`;
     }
 
     function enviarIndividual(i) {
         window.open(generarLink(pacientesGlobal[i]), '_blank');
-        marcarHecho(i);
+        marcarVisto(i);
     }
 
-    function reportarNoWa(i) {
-        const p = pacientesGlobal[i];
-        // Esta función asume que tienes el parámetro errorNum en tu GAS
-        fetch(`${SCRIPT_URL}?errorNum=${p.CELULAR}`, { mode: 'no-cors' });
-        alert(`Reportado: ${p.NOMBRE} sin WhatsApp.`);
-        marcarHecho(i, true);
+    // 5. REPORTE DE ERROR (COLUMNA Q)
+    function reportarSinWa(i) {
+        const cel = pacientesGlobal[i].CELULAR || pacientesGlobal[i]['CELULAR'];
+        // Envía el celular para que el Script lo busque y marque la Columna Q
+        fetch(`${SCRIPT_URL}?errorNum=${cel}`, { mode: 'no-cors' });
+        alert("Reportado en Columna Q");
+        marcarVisto(i, true);
     }
 
+    // 6. FLUJO CONTINUO
     function prepararSiguiente() {
         const btn = document.getElementById('btnSiguiente');
         if (indiceActual < pacientesGlobal.length) {
@@ -229,17 +203,17 @@
     }
 
     function marcarSiguiente() {
-        marcarHecho(indiceActual);
+        marcarVisto(indiceActual);
         indiceActual++;
-        setTimeout(prepararSiguiente, 1000);
+        setTimeout(prepararSiguiente, 800);
     }
 
-    function marcarHecho(i, isError = false) {
+    function marcarVisto(i, err = false) {
         const row = document.getElementById(`pac-row-${i}`);
         if(row) {
-            row.style.opacity = "0.4";
-            row.style.background = isError ? "#ffeeee" : "#f0f0f0";
-            row.querySelector('.actions').innerHTML = `<span style="color:${isError?'red':'green'}; font-weight:bold; font-size:12px;">${isError?'❌ MARCADO':'✅ ENVIADO'}</span>`;
+            row.style.opacity = "0.3";
+            row.style.background = err ? "#fff0f0" : "#f5f5f5";
+            row.querySelector('.btn-send').style.display = "none";
         }
     }
 </script>
