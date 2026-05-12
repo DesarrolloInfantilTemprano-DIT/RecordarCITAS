@@ -85,7 +85,7 @@
 </div>
 
 <script>
-    // URL DE TU SCRIPT (LA QUE TERMINA EN /exec)
+    // URL DE TU SCRIPT
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzdVky8yEUEeAXaD7YzKHpA1-SYh5ZExbqetuMcZY8PMyhq4Jg6ihsalc84-bI1IXVmTg/exec';
     
     let pacientesGlobal = [];
@@ -108,7 +108,7 @@
         }
     };
 
-    // 2. PETICIÓN DE DATOS (A-P) AL SCRIPT
+    // 2. PETICIÓN DE DATOS (Mapeo flexible basado en image_8fc689.png)
     async function cargarDatos() {
         const btn = document.querySelector('.btn-main');
         const fIni = document.getElementById('fechaInicio').value;
@@ -131,11 +131,12 @@
                 complete: function(results) {
                     const turnoSel = document.getElementById('filtroTurno').value;
 
-                    // Filtrado respetando el blindaje (A-H)
+                    // Filtrado con nombres de columna flexibles
                     pacientesGlobal = results.data.filter(p => {
-                        const t = (p.TURNO || "").toUpperCase();
-                        const tieneCel = p.CELULAR || p['CELULAR'];
-                        return tieneCel && (turnoSel === "TODOS" || t === turnoSel);
+                        const t = (p.TURNO || p['TURNO'] || "").toUpperCase().trim();
+                        // Busca celular en cualquier variante de nombre de columna
+                        const cel = p.CELULAR || p['CELULAR'];
+                        return cel && (turnoSel === "TODOS" || t === turnoSel);
                     });
 
                     indiceActual = 0;
@@ -153,21 +154,27 @@
         }
     }
 
-    // 3. MOSTRAR PACIENTES EN PANTALLA
+    // 3. MOSTRAR PACIENTES (Ajustado para leer FECHA_CITA o FECHA DE CITA)
     function mostrarLista() {
         const div = document.getElementById('lista');
         document.getElementById('contador').innerText = `PACIENTES ENCONTRADOS: ${pacientesGlobal.length}`;
         div.innerHTML = "";
         
         pacientesGlobal.forEach((p, i) => {
+            // Mapeo de datos para asegurar que se lean aunque el nombre de la columna varíe
+            const nombreP = p.NOMBRE || p['NOMBRE'];
+            const fechaP = p.FECHA_CITA || p['FECHA_CITA'] || p['FECHA DE CITA'];
+            const turnoP = p.TURNO || p['TURNO'];
+            const consultorioP = p.CONSULTORIO || p['CONSULTORIO'];
+
             const item = document.createElement('div');
             item.className = 'tarjeta';
             item.id = `pac-row-${i}`;
             item.innerHTML = `
                 <div class="info">
-                    <b>${p.NOMBRE}</b>
-                    <span>📅 ${p.FECHA_CITA || p['FECHA DE CITA']} | ⏰ ${p.TURNO}</span>
-                    <span style="font-size:9px; color:var(--accent);">📍 ${p.CONSULTORIO}</span>
+                    <b>${nombreP}</b>
+                    <span>📅 ${fechaP} | ⏰ ${turnoP}</span>
+                    <span style="font-size:9px; color:var(--accent);">📍 ${consultorioP}</span>
                 </div>
                 <div class="actions">
                     <a href="#" class="btn-send" onclick="enviarIndividual(${i})">ENVIAR</a>
@@ -179,29 +186,31 @@
     }
 
     // 4. GENERACIÓN DE MENSAJE PERSONALIZADO
-    function generarLink(p) {
+    function generarLink(i) {
+        const p = pacientesGlobal[i];
         let cel = (p.CELULAR || p['CELULAR']).toString().replace(/\D/g, "");
         if (cel.length === 9) cel = "51" + cel;
 
         const extra = document.getElementById('msgAdicional').value.trim();
         const nota = extra ? `\n\n📌 *Nota:* ${extra}` : "";
-        const nom = p.NOMBRE;
-        const fec = p.FECHA_CITA || p['FECHA DE CITA'];
+        const nom = p.NOMBRE || p['NOMBRE'];
+        const fec = p.FECHA_CITA || p['FECHA_CITA'] || p['FECHA DE CITA'];
+        const tur = p.TURNO || p['TURNO'];
+        const con = p.CONSULTORIO || p['CONSULTORIO'];
 
-        const msg = `Hola, le saludamos del Centro de Salud *Castillo Grande*. Le recordamos la cita de *${nom}* para el día *${fec}* en el turno *${p.TURNO}* (${p.CONSULTORIO}). Por favor, acuda puntualmente.${nota}`;
+        const msg = `Hola, le saludamos del Centro de Salud *Castillo Grande*. Le recordamos la cita de *${nom}* para el día *${fec}* en el turno *${tur}* (${con}). Por favor, acuda puntualmente.${nota}`;
         
         return `https://api.whatsapp.com/send?phone=${cel}&text=${encodeURIComponent(msg)}`;
     }
 
     function enviarIndividual(i) {
-        window.open(generarLink(pacientesGlobal[i]), '_blank');
+        window.open(generarLink(i), '_blank');
         marcarVisto(i);
     }
 
     // 5. REPORTE A COLUMNA Q
     function reportarError(i) {
         const cel = pacientesGlobal[i].CELULAR || pacientesGlobal[i]['CELULAR'];
-        // Llama a la nueva función del Script para la columna Q
         fetch(`${SCRIPT_URL}?errorNum=${cel}`, { mode: 'no-cors' });
         alert("Reportado en Columna Q");
         marcarVisto(i, true);
@@ -211,9 +220,9 @@
     function prepararSiguiente() {
         const btn = document.getElementById('btnSiguiente');
         if (indiceActual < pacientesGlobal.length) {
-            btn.href = generarLink(pacientesGlobal[indiceActual]);
+            btn.href = generarLink(indiceActual);
             btn.style.display = 'block';
-            btn.innerText = `SIGUIENTE: ${pacientesGlobal[indiceActual].NOMBRE}`;
+            btn.innerText = `SIGUIENTE: ${pacientesGlobal[indiceActual].NOMBRE || pacientesGlobal[indiceActual]['NOMBRE']}`;
         } else {
             btn.style.display = 'none';
         }
