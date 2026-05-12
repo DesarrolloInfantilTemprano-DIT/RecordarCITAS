@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SISTEMA CITAS V6.7 - Castillo Grande</title>
+    <title>SISTEMA CITAS V6.8 - Castillo Grande</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
     <style>
         :root { --dark: #075E54; --wa: #25D366; --accent: #00a884; --error: #ef5350; }
         body { font-family: 'Segoe UI', sans-serif; background-color: #333; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; overflow-x: hidden; }
         
-        /* Animación de fondo profesional */
+        /* Animación de fondo */
         .slideshow { position: fixed; width: 100%; height: 100%; top: 0; left: 0; z-index: -1; list-style: none; margin: 0; padding: 0; }
         .slideshow li { width: 100%; height: 100%; position: absolute; background-size: cover; background-position: center; opacity: 0; animation: imageAnimation 36s linear infinite; }
         .slideshow li:nth-child(1) { background-image: url('https://images.unsplash.com/photo-1584820923423-8f2df4777b71?q=80&w=1600'); }
@@ -29,20 +29,17 @@
         
         .btn-next { background: #ff9800; color: white; padding: 18px; border-radius: 15px; text-align: center; text-decoration: none; display: none; font-weight: 900; margin-bottom: 15px; box-shadow: 0 5px 15px rgba(255,152,0,0.4); text-transform: uppercase; font-size: 13px; }
 
-        .tarjeta { background: white; border-radius: 15px; padding: 15px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; border-left: 6px solid var(--accent); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .tarjeta { background: white; border-radius: 15px; padding: 15px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; border-left: 6px solid var(--accent); box-shadow: 0 4px 12px rgba(0,0,0,0.05); transition: 0.3s; }
         .info b { display: block; color: var(--dark); font-size: 13px; text-transform: uppercase; line-height: 1.2; }
         .info span { font-size: 11px; color: #666; display: block; margin-top: 4px; }
 
         .actions { display: flex; flex-direction: column; gap: 8px; align-items: flex-end; }
         .btn-send { background: var(--wa); color: white; text-decoration: none; padding: 8px 16px; border-radius: 20px; font-size: 11px; font-weight: bold; transition: 0.3s; }
-        .btn-send:hover { background: #1ebe57; }
         .btn-error { background: #fdfdfd; color: #bbb; border: 1px solid #eee; padding: 5px 10px; border-radius: 8px; font-size: 9px; cursor: pointer; font-weight: bold; }
-        .btn-error:hover { color: var(--error); border-color: var(--error); }
 
         #lista { max-height: 320px; overflow-y: auto; margin-top: 15px; padding-right: 8px; }
         #lista::-webkit-scrollbar { width: 4px; }
         #lista::-webkit-scrollbar-thumb { background: #ddd; border-radius: 10px; }
-        
         #contador { text-align: center; font-size: 11px; color: #888; margin: 12px 0; font-weight: bold; }
     </style>
 </head>
@@ -60,12 +57,12 @@
             <input type="date" id="fechaFin">
         </div>
         
-        <label>Consultorio (Desde Excel):</label>
+        <label>Consultorio:</label>
         <select id="filtroConsultorio">
             <option value="TODOS">Cargando consultorios...</option>
         </select>
 
-        <label>Turno de Atención:</label>
+        <label>Turno:</label>
         <select id="filtroTurno">
             <option value="TODOS">TODOS LOS TURNOS</option>
             <option value="MAÑANA">MAÑANA</option>
@@ -90,38 +87,50 @@
     let pacientesGlobal = [];
     let indiceActual = 0;
 
-    // 1. CARGA DINÁMICA DE CONSULTORIOS
+    // --- FUNCIÓN DE NORMALIZACIÓN DE FECHAS (Indispensable para reconocer el Excel) ---
+    function normalizarFecha(str) {
+        if (!str) return null;
+        let limpio = str.toString().replace(/"/g, "").trim().split(" ")[0];
+        let partes;
+        if (limpio.includes("/")) {
+            partes = limpio.split("/");
+            if (partes[0].length === 4) return `${partes[0]}-${partes[1].padStart(2,'0')}-${partes[2].padStart(2,'0')}`;
+            return `${partes[2]}-${partes[1].padStart(2,'0')}-${partes[0].padStart(2,'0')}`;
+        } else if (limpio.includes("-")) {
+            partes = limpio.split("-");
+            if (partes[0].length === 4) return limpio;
+            return `${partes[2]}-${partes[1].padStart(2,'0')}-${partes[0].padStart(2,'0')}`;
+        }
+        return limpio;
+    }
+
+    // 1. CARGA DE CONSULTORIOS
     window.onload = async () => {
-        const select = document.getElementById('filtroConsultorio');
         try {
             const resp = await fetch(`${SCRIPT_URL}?getFiltros=true`);
             const data = await resp.json();
+            const select = document.getElementById('filtroConsultorio');
             select.innerHTML = '<option value="TODOS">-- TODOS LOS CONSULTORIOS --</option>';
-            if(data.consultorios && data.consultorios.length > 0) {
-                data.consultorios.forEach(c => {
-                    if(c) select.innerHTML += `<option value="${c}">${c}</option>`;
-                });
+            if(data.consultorios) {
+                data.consultorios.forEach(c => { if(c) select.innerHTML += `<option value="${c}">${c}</option>`; });
             }
-        } catch(e) {
-            select.innerHTML = '<option value="TODOS">-- TODOS LOS CONSULTORIOS --</option>';
-        }
+        } catch(e) { console.error("Error filtros"); }
     };
 
-    // 2. PETICIÓN DE DATOS (CORREGIDO PARA FECHAS)
+    // 2. BUSQUEDA DE DATOS
     async function cargarDatos() {
         const btn = document.querySelector('.btn-main');
         const fIni = document.getElementById('fechaInicio').value;
         const fFin = document.getElementById('fechaFin').value;
         const cons = document.getElementById('filtroConsultorio').value;
 
-        if (!fIni || !fFin) return alert("Por favor, selecciona las fechas.");
+        if (!fIni || !fFin) return alert("Selecciona fechas");
 
-        btn.innerText = "Buscando en Excel...";
+        btn.innerText = "Buscando...";
         btn.disabled = true;
 
         try {
-            // El Script espera yyyy-MM-dd, los inputs de fecha ya lo dan así
-            const url = `${SCRIPT_URL}?exportar=true&desde=${fIni}&hasta=${fFin}&cons=${encodeURIComponent(cons)}`;
+            const url = `${SCRIPT_URL}?exportar=true&cons=${encodeURIComponent(cons)}`;
             const resp = await fetch(url);
             const csvText = await resp.text();
 
@@ -131,50 +140,44 @@
                 complete: function(results) {
                     const turnoSel = document.getElementById('filtroTurno').value;
 
-                    // Filtramos por turno y aseguramos que el celular exista
                     pacientesGlobal = results.data.filter(p => {
-                        const t = (p.TURNO || "").toUpperCase().trim();
-                        // Limpiamos comillas que el Script a veces añade al CSV
+                        const fechaNorm = normalizarFecha(p.FECHA_CITA);
+                        const turnoP = (p.TURNO || "").toUpperCase().trim().replace(/"/g, "");
                         const cel = (p.CELULAR || "").toString().replace(/"/g, "").trim();
-                        return cel !== "" && (turnoSel === "TODOS" || t === turnoSel);
+
+                        const cumpleFecha = (fechaNorm >= fIni && fechaNorm <= fFin);
+                        const cumpleTurno = (turnoSel === "TODOS" || turnoP === turnoSel);
+                        return cel !== "" && cumpleFecha && cumpleTurno;
                     });
 
                     indiceActual = 0;
                     btn.innerText = "Consultar Citados";
                     btn.disabled = false;
-                    
                     mostrarLista();
                     prepararSiguiente();
                 }
             });
         } catch (err) {
-            alert("Error al conectar con el servidor.");
-            btn.innerText = "Consultar Citados";
+            alert("Error de red");
             btn.disabled = false;
         }
     }
 
-    // 3. MOSTRAR PACIENTES
+    // 3. RENDERIZADO DE LISTA
     function mostrarLista() {
         const div = document.getElementById('lista');
-        document.getElementById('contador').innerText = `PACIENTES ENCONTRADOS: ${pacientesGlobal.length}`;
+        document.getElementById('contador').innerText = `ENCONTRADOS: ${pacientesGlobal.length}`;
         div.innerHTML = "";
         
         pacientesGlobal.forEach((p, i) => {
-            // Limpieza de datos (quitar comillas del CSV)
-            const nombreP = (p.NOMBRE || "Sin Nombre").replace(/"/g, "");
-            const fechaP = (p.FECHA_CITA || "---").replace(/"/g, "");
-            const turnoP = (p.TURNO || "").replace(/"/g, "");
-            const consultorioP = (p.CONSULTORIO || "").replace(/"/g, "");
-
             const item = document.createElement('div');
             item.className = 'tarjeta';
             item.id = `pac-row-${i}`;
             item.innerHTML = `
                 <div class="info">
-                    <b>${nombreP}</b>
-                    <span>📅 ${fechaP} | ⏰ ${turnoP}</span>
-                    <span style="font-size:9px; color:var(--accent);">📍 ${consultorioP}</span>
+                    <b>${(p.NOMBRE || "S/N").replace(/"/g, "")}</b>
+                    <span>📅 ${(p.FECHA_CITA || "").replace(/"/g, "")} | ⏰ ${(p.TURNO || "").replace(/"/g, "")}</span>
+                    <span style="font-size:9px; color:var(--accent);">📍 ${(p.CONSULTORIO || "").replace(/"/g, "")}</span>
                 </div>
                 <div class="actions">
                     <a href="#" class="btn-send" onclick="enviarIndividual(${i})">ENVIAR</a>
@@ -185,19 +188,14 @@
         });
     }
 
-    // 4. GENERACIÓN DE MENSAJE
+    // 4. LOGICA WHATSAPP
     function generarLink(i) {
         const p = pacientesGlobal[i];
         let cel = (p.CELULAR || "").toString().replace(/\D/g, "");
         if (cel.length === 9) cel = "51" + cel;
 
         const extra = document.getElementById('msgAdicional').value.trim();
-        const nom = (p.NOMBRE || "").replace(/"/g, "");
-        const fec = (p.FECHA_CITA || "").replace(/"/g, "");
-        const tur = (p.TURNO || "").replace(/"/g, "");
-        const con = (p.CONSULTORIO || "").replace(/"/g, "");
-
-        const msg = `Hola, le saludamos del Centro de Salud *Castillo Grande*. Le recordamos la cita de *${nom}* para el día *${fec}* en el turno *${tur}* (${con}). Por favor, acuda puntualmente.${extra ? '\n\n📌 *Nota:* ' + extra : ''}`;
+        const msg = `Hola, le saludamos del Centro de Salud *Castillo Grande*. Le recordamos la cita de *${(p.NOMBRE || "").replace(/"/g, "")}* para el día *${(p.FECHA_CITA || "").replace(/"/g, "")}* en el turno *${(p.TURNO || "").replace(/"/g, "")}* (${(p.CONSULTORIO || "").replace(/"/g, "")}). Por favor, acuda puntualmente.${extra ? '\n\n📌 *Nota:* ' + extra : ''}`;
         
         return `https://api.whatsapp.com/send?phone=${cel}&text=${encodeURIComponent(msg)}`;
     }
@@ -207,19 +205,21 @@
         marcarVisto(i);
     }
 
+    // 5. REPORTE A COLUMNA Q (SIN WA)
     function reportarError(i) {
         const cel = (pacientesGlobal[i].CELULAR || "").toString().replace(/"/g, "").trim();
         fetch(`${SCRIPT_URL}?errorNum=${cel}`, { mode: 'no-cors' });
-        alert("Reportado en Columna Q");
+        alert("Número marcado como SIN WA en el Excel (Columna Q)");
         marcarVisto(i, true);
     }
 
+    // 6. FLUJO CONTINUO
     function prepararSiguiente() {
         const btn = document.getElementById('btnSiguiente');
         if (indiceActual < pacientesGlobal.length) {
             btn.href = generarLink(indiceActual);
             btn.style.display = 'block';
-            btn.innerText = `SIGUIENTE: ${(pacientesGlobal[indiceActual].NOMBRE || "").replace(/"/g, "")}`;
+            btn.innerText = `ENVIAR A: ${(pacientesGlobal[indiceActual].NOMBRE || "").replace(/"/g, "")}`;
         } else {
             btn.style.display = 'none';
         }
@@ -236,8 +236,8 @@
         if(row) {
             row.style.opacity = "0.3";
             row.style.background = err ? "#fff0f0" : "#f5f5f5";
-            const bSend = row.querySelector('.btn-send');
-            if(bSend) bSend.style.display = "none";
+            const b = row.querySelector('.btn-send');
+            if(b) b.style.display = "none";
         }
     }
 </script>
