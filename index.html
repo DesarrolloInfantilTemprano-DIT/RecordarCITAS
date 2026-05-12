@@ -7,36 +7,43 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
     <style>
         :root { --dark: #075E54; --wa: #25D366; --accent: #00a884; --error: #ef5350; }
-        body { font-family: 'Segoe UI', sans-serif; background-color: #333; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: #333; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; overflow-x: hidden; }
         
-        /* Slideshow de fondo */
+        /* Animación de fondo profesional */
         .slideshow { position: fixed; width: 100%; height: 100%; top: 0; left: 0; z-index: -1; list-style: none; margin: 0; padding: 0; }
         .slideshow li { width: 100%; height: 100%; position: absolute; background-size: cover; background-position: center; opacity: 0; animation: imageAnimation 36s linear infinite; }
         .slideshow li:nth-child(1) { background-image: url('https://images.unsplash.com/photo-1584820923423-8f2df4777b71?q=80&w=1600'); }
         .slideshow li:nth-child(2) { background-image: url('https://images.unsplash.com/photo-1532938911079-1b06ac7ceec7?q=80&w=1600'); animation-delay: 12s; }
         @keyframes imageAnimation { 0% { opacity: 0; } 8% { opacity: 1; } 33% { opacity: 1; } 41% { opacity: 0; } }
 
-        .card { background: rgba(255, 255, 255, 0.96); padding: 25px; border-radius: 25px; width: 95%; max-width: 480px; box-shadow: 0 15px 45px rgba(0,0,0,0.6); backdrop-filter: blur(10px); }
-        h2 { color: var(--dark); text-align: center; text-transform: uppercase; font-weight: 800; margin-bottom: 20px; font-size: 1.2rem; }
+        .card { background: rgba(255, 255, 255, 0.96); padding: 25px; border-radius: 25px; width: 95%; max-width: 480px; box-shadow: 0 15px 45px rgba(0,0,0,0.6); backdrop-filter: blur(10px); position: relative; }
+        h2 { color: var(--dark); text-align: center; text-transform: uppercase; font-weight: 800; font-size: 20px; margin-bottom: 20px; letter-spacing: 1px; }
         
         .filtros { display: flex; flex-direction: column; gap: 10px; background: white; padding: 15px; border-radius: 15px; border: 1px solid #eee; }
-        label { font-size: 10px; font-weight: 800; color: #777; text-transform: uppercase; margin-bottom: -5px; }
-        input, select, textarea { padding: 10px; border-radius: 8px; border: 1px solid #ddd; width: 100%; box-sizing: border-box; font-size: 14px; }
+        label { font-size: 10px; font-weight: 800; color: #777; text-transform: uppercase; margin-bottom: -5px; margin-left: 5px; }
+        input, select, textarea { padding: 12px; border-radius: 10px; border: 1px solid #ddd; width: 100%; box-sizing: border-box; font-size: 14px; outline: none; transition: 0.3s; }
+        input:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 8px rgba(0,168,132,0.2); }
         
-        .btn-main { background: #00a884; color: white; border: none; padding: 15px; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 10px; text-transform: uppercase; width: 100%; transition: 0.3s; }
-        .btn-main:hover { background: var(--dark); }
+        .btn-main { background: var(--accent); color: white; border: none; padding: 15px; border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 10px; text-transform: uppercase; width: 100%; font-size: 14px; }
+        .btn-main:active { transform: scale(0.98); }
         
-        .btn-next { background: #ff9800; color: white; padding: 18px; border-radius: 12px; text-align: center; text-decoration: none; display: none; font-weight: 900; margin-bottom: 15px; box-shadow: 0 5px 15px rgba(255,152,0,0.3); }
+        .btn-next { background: #ff9800; color: white; padding: 18px; border-radius: 15px; text-align: center; text-decoration: none; display: none; font-weight: 900; margin-bottom: 15px; box-shadow: 0 5px 15px rgba(255,152,0,0.4); text-transform: uppercase; font-size: 13px; }
 
-        .tarjeta { background: white; border-radius: 12px; padding: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border-left: 5px solid var(--accent); border: 1px solid #eee; }
-        .info b { display: block; color: var(--dark); font-size: 13px; text-transform: uppercase; }
-        .info span { font-size: 11px; color: #666; display: block; }
+        .tarjeta { background: white; border-radius: 15px; padding: 15px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; border-left: 6px solid var(--accent); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .info b { display: block; color: var(--dark); font-size: 13px; text-transform: uppercase; line-height: 1.2; }
+        .info span { font-size: 11px; color: #666; display: block; margin-top: 4px; }
 
-        .actions { display: flex; flex-direction: column; gap: 6px; align-items: flex-end; }
-        .btn-send { background: var(--wa); color: white; text-decoration: none; padding: 8px 15px; border-radius: 20px; font-size: 11px; font-weight: bold; }
-        .btn-err { background: #f9f9f9; color: #999; border: 1px solid #ddd; padding: 4px 8px; border-radius: 5px; font-size: 9px; cursor: pointer; }
+        .actions { display: flex; flex-direction: column; gap: 8px; align-items: flex-end; }
+        .btn-send { background: var(--wa); color: white; text-decoration: none; padding: 8px 16px; border-radius: 20px; font-size: 11px; font-weight: bold; transition: 0.3s; }
+        .btn-send:hover { background: #1ebe57; }
+        .btn-error { background: #fdfdfd; color: #bbb; border: 1px solid #eee; padding: 5px 10px; border-radius: 8px; font-size: 9px; cursor: pointer; font-weight: bold; }
+        .btn-error:hover { color: var(--error); border-color: var(--error); }
 
-        #lista { max-height: 300px; overflow-y: auto; margin-top: 15px; padding-right: 5px; }
+        #lista { max-height: 320px; overflow-y: auto; margin-top: 15px; padding-right: 8px; }
+        #lista::-webkit-scrollbar { width: 4px; }
+        #lista::-webkit-scrollbar-thumb { background: #ddd; border-radius: 10px; }
+        
+        #contador { text-align: center; font-size: 11px; color: #888; margin: 12px 0; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -53,12 +60,12 @@
             <input type="date" id="fechaFin">
         </div>
         
-        <label>Consultorio (Dinámico):</label>
+        <label>Consultorio (Desde Excel):</label>
         <select id="filtroConsultorio">
             <option value="TODOS">Cargando consultorios...</option>
         </select>
 
-        <label>Turno:</label>
+        <label>Turno de Atención:</label>
         <select id="filtroTurno">
             <option value="TODOS">TODOS LOS TURNOS</option>
             <option value="MAÑANA">MAÑANA</option>
@@ -66,46 +73,51 @@
         </select>
 
         <label>Mensaje Adicional:</label>
-        <textarea id="msgAdicional" rows="2" placeholder="Ej: Traer DNI físico..."></textarea>
+        <textarea id="msgAdicional" rows="2" placeholder="Ej: Traer carnet de vacunación..."></textarea>
 
-        <button class="btn-main" onclick="cargarDatos()">Mostrar Listado</button>
+        <button class="btn-main" onclick="cargarDatos()">Consultar Citados</button>
     </div>
     
-    <p id="contador" style="text-align:center; font-size:11px; color:#888; margin: 12px 0;"></p>
+    <p id="contador"></p>
     <a id="btnSiguiente" href="#" target="_blank" class="btn-next" onclick="marcarSiguiente()">ENVIAR AL SIGUIENTE</a>
 
     <div id="lista"></div>
 </div>
 
 <script>
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxORQP9UVrLtaqwYV6HhgvH2Mpi0iBQLkdBDPdJqNiF1nMi7CAHTC7IqoM7oRw3jU_TvQ/exec';
+    // URL DE TU SCRIPT (LA QUE TERMINA EN /exec)
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzdVky8yEUEeAXaD7YzKHpA1-SYh5ZExbqetuMcZY8PMyhq4Jg6ihsalc84-bI1IXVmTg/exec';
+    
     let pacientesGlobal = [];
     let indiceActual = 0;
 
-    // 1. CARGA DINÁMICA DE CONSULTORIOS AL INICIAR
+    // 1. CARGA DINÁMICA DE CONSULTORIOS AL ABRIR LA WEB
     window.onload = async () => {
         try {
             const resp = await fetch(`${SCRIPT_URL}?getFiltros=true`);
             const data = await resp.json();
             const select = document.getElementById('filtroConsultorio');
             select.innerHTML = '<option value="TODOS">-- TODOS LOS CONSULTORIOS --</option>';
-            data.consultorios.forEach(c => {
-                if(c) select.innerHTML += `<option value="${c}">${c}</option>`;
-            });
+            if(data.consultorios && data.consultorios.length > 0) {
+                data.consultorios.forEach(c => {
+                    if(c) select.innerHTML += `<option value="${c}">${c}</option>`;
+                });
+            }
         } catch(e) {
-            document.getElementById('filtroConsultorio').innerHTML = '<option value="TODOS">ERROR DE CARGA</option>';
+            document.getElementById('filtroConsultorio').innerHTML = '<option value="TODOS">ERROR: REVISA PERMISOS SCRIPT</option>';
         }
     };
 
-    // 2. PETICIÓN DE DATOS AL SCRIPT
+    // 2. PETICIÓN DE DATOS (A-P) AL SCRIPT
     async function cargarDatos() {
         const btn = document.querySelector('.btn-main');
         const fIni = document.getElementById('fechaInicio').value;
         const fFin = document.getElementById('fechaFin').value;
         const cons = document.getElementById('filtroConsultorio').value;
 
-        if (!fIni || !fFin) return alert("Selecciona el rango de fechas.");
-        btn.innerText = "Consultando...";
+        if (!fIni || !fFin) return alert("Por favor, selecciona las fechas.");
+
+        btn.innerText = "Buscando en Excel...";
         btn.disabled = true;
 
         try {
@@ -118,30 +130,33 @@
                 skipEmptyLines: true,
                 complete: function(results) {
                     const turnoSel = document.getElementById('filtroTurno').value;
-                    // Filtramos respetando el blindaje de N, O y P
+
+                    // Filtrado respetando el blindaje (A-H)
                     pacientesGlobal = results.data.filter(p => {
                         const t = (p.TURNO || "").toUpperCase();
-                        return (p.CELULAR || p['CELULAR']) && (turnoSel === "TODOS" || t === turnoSel);
+                        const tieneCel = p.CELULAR || p['CELULAR'];
+                        return tieneCel && (turnoSel === "TODOS" || t === turnoSel);
                     });
 
                     indiceActual = 0;
-                    btn.innerText = "Mostrar Listado";
+                    btn.innerText = "Consultar Citados";
                     btn.disabled = false;
+                    
                     mostrarLista();
                     prepararSiguiente();
                 }
             });
         } catch (err) {
-            alert("Error de conexión con el Excel.");
-            btn.innerText = "Mostrar Listado";
+            alert("Error al conectar con el servidor.");
+            btn.innerText = "Consultar Citados";
             btn.disabled = false;
         }
     }
 
-    // 3. RENDERIZADO DE LA LISTA
+    // 3. MOSTRAR PACIENTES EN PANTALLA
     function mostrarLista() {
         const div = document.getElementById('lista');
-        document.getElementById('contador').innerText = `Pacientes en lista: ${pacientesGlobal.length}`;
+        document.getElementById('contador').innerText = `PACIENTES ENCONTRADOS: ${pacientesGlobal.length}`;
         div.innerHTML = "";
         
         pacientesGlobal.forEach((p, i) => {
@@ -152,17 +167,18 @@
                 <div class="info">
                     <b>${p.NOMBRE}</b>
                     <span>📅 ${p.FECHA_CITA || p['FECHA DE CITA']} | ⏰ ${p.TURNO}</span>
-                    <span style="font-size:9px;">📍 ${p.CONSULTORIO}</span>
+                    <span style="font-size:9px; color:var(--accent);">📍 ${p.CONSULTORIO}</span>
                 </div>
                 <div class="actions">
                     <a href="#" class="btn-send" onclick="enviarIndividual(${i})">ENVIAR</a>
-                    <button class="btn-err" onclick="reportarSinWa(${i})">SIN WA</button>
-                </div>`;
+                    <button class="btn-error" onclick="reportarError(${i})">SIN WA</button>
+                </div>
+            `;
             div.appendChild(item);
         });
     }
 
-    // 4. GENERACIÓN DE LINK WHATSAPP
+    // 4. GENERACIÓN DE MENSAJE PERSONALIZADO
     function generarLink(p) {
         let cel = (p.CELULAR || p['CELULAR']).toString().replace(/\D/g, "");
         if (cel.length === 9) cel = "51" + cel;
@@ -172,7 +188,8 @@
         const nom = p.NOMBRE;
         const fec = p.FECHA_CITA || p['FECHA DE CITA'];
 
-        const msg = `Hola, recordamos la cita CRED de *${nom}* para el día *${fec}* en el turno *${p.TURNO}*. Por favor, confirme su asistencia.${nota}`;
+        const msg = `Hola, le saludamos del Centro de Salud *Castillo Grande*. Le recordamos la cita de *${nom}* para el día *${fec}* en el turno *${p.TURNO}* (${p.CONSULTORIO}). Por favor, acuda puntualmente.${nota}`;
+        
         return `https://api.whatsapp.com/send?phone=${cel}&text=${encodeURIComponent(msg)}`;
     }
 
@@ -181,16 +198,16 @@
         marcarVisto(i);
     }
 
-    // 5. REPORTE DE ERROR (COLUMNA Q)
-    function reportarSinWa(i) {
+    // 5. REPORTE A COLUMNA Q
+    function reportarError(i) {
         const cel = pacientesGlobal[i].CELULAR || pacientesGlobal[i]['CELULAR'];
-        // Envía el celular para que el Script lo busque y marque la Columna Q
+        // Llama a la nueva función del Script para la columna Q
         fetch(`${SCRIPT_URL}?errorNum=${cel}`, { mode: 'no-cors' });
         alert("Reportado en Columna Q");
         marcarVisto(i, true);
     }
 
-    // 6. FLUJO CONTINUO
+    // 6. LÓGICA DE FLUJO CONTINUO
     function prepararSiguiente() {
         const btn = document.getElementById('btnSiguiente');
         if (indiceActual < pacientesGlobal.length) {
