@@ -76,7 +76,7 @@
 </div>
 
 <script>
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzdVky8yEUEeAXaD7YzKHpA1-SYh5ZExbqetuMcZY8PMyhq4Jg6ihsalc84-bI1IXVmTg/exec';
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzKPw87tRTl6JdOIioPdKEVX-ldU8R7HRt5HxynimsgrRRd5dJf5ptNP-0xuao_xylHQw/exec';
     let pacientesGlobal = [];
     let indiceActual = 0;
 
@@ -92,13 +92,13 @@
     };
 
     /**
-     * getVal adaptado para las cabeceras exactas de tu Apps Script:
-     * DNI, NOMBRE, FECHA_NACIMIENTO, CELULAR, FECHA_CITA, TURNO, CONSULTORIO, etc.
+     * getVal mejorado con tolerancia estricta a comillas, guiones bajos o espacios 
+     * provenientes del volcado del Apps Script.
      */
     function getVal(obj, search) {
         const keys = Object.keys(obj);
         
-        // Mapeo de búsqueda amigable a nombre técnico del CSV del Script
+        // Mapeo de búsqueda de interfaz a las cabeceras reales del CSV backend
         const mapa = {
             "NOMBRE": "NOMBRE",
             "CELULAR": "CELULAR",
@@ -109,11 +109,15 @@
 
         const campoTecnico = mapa[search] || search;
 
-        // Buscamos la llave ignorando comillas o espacios que el CSV pueda traer
-        let key = keys.find(k => k.trim().replace(/[ '"]/g, "").toUpperCase() === campoTecnico.replace(/_/g, "").toUpperCase() || k.trim().replace(/[ '"]/g, "").toUpperCase() === campoTecnico.toUpperCase());
+        // Comparamos limpiando rigurosamente espacios, comillas y barras bajas en ambas partes
+        let key = keys.find(k => {
+            const cleanKey = k.trim().replace(/[ '"_]/g, "").toUpperCase();
+            const cleanSearch = campoTecnico.replace(/[ '"_]/g, "").toUpperCase();
+            return cleanKey === cleanSearch;
+        });
         
         let valor = key ? obj[key] : "";
-        // Limpiamos el valor de las comillas dobles que pone el Apps Script en la exportación
+        // Retornamos quitando comillas dobles residuales
         return typeof valor === 'string' ? valor.replace(/"/g, "").trim() : valor;
     }
 
@@ -129,7 +133,6 @@
         btn.disabled = true;
 
         try {
-            // Enviamos desde y hasta, que es como lo espera tu Apps Script
             const url = `${SCRIPT_URL}?exportar=true&desde=${fIniStr}&hasta=${fFinStr}&cons=${encodeURIComponent(consSel)}`;
             const resp = await fetch(url);
             const csvText = await resp.text();
@@ -140,8 +143,7 @@
                 complete: function(results) {
                     const turnoSel = document.getElementById('filtroTurno').value;
 
-                    // El filtrado por fecha ya lo hizo el servidor (Apps Script),
-                    // aquí solo filtramos turno y limpiamos la lista.
+                    // Filtrado en cliente de turnos y validación de celular base
                     pacientesGlobal = results.data.filter(p => {
                         const turnoP = (getVal(p, "TURNO") || "").toUpperCase();
                         const cel = (getVal(p, "CELULAR") || "").toString().replace(/\D/g, "");
@@ -162,6 +164,7 @@
         } catch (err) {
             console.error(err);
             alert("Error de conexión con el servidor");
+            btn.innerText = "CONSULTAR CITADOS";
             btn.disabled = false;
         }
     }
@@ -194,7 +197,7 @@
         let cel = (getVal(p, "CELULAR") || "").toString().replace(/\D/g, "");
         if (cel.length === 9) cel = "51" + cel;
         const extra = document.getElementById('msgAdicional').value.trim();
-        // Nota: se usa FECHA DE CITA que getVal traduce a FECHA_CITA del CSV
+        
         const msg = `Hola, le saludamos del Centro de Salud *Castillo Grande*. Le recordamos la cita de *${getVal(p, "NOMBRE")}* para el día *${getVal(p, "FECHA DE CITA")}* en el turno *${getVal(p, "TURNO")}* (${getVal(p, "CONSULTORIO")}). Por favor, acuda puntualmente.${extra ? '\n\n📌 *Nota:* ' + extra : ''}`;
         return `https://api.whatsapp.com/send?phone=${cel}&text=${encodeURIComponent(msg)}`;
     }
