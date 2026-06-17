@@ -76,7 +76,7 @@
 </div>
 
 <script>
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyNJ6i2CQ-bEv5U13z4s26KFr14yq1Oh1-MWXsibiehmK2STbxRH-fdUOJL6wHxQuO9iQ/exec';
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbznQfBIvVSKq_YA0kYdQlLJH6f0TaCKUA-hhsP44VEH9ygmAaoKHBmjW_he5htrrfRV/exec';
     let pacientesGlobal = [];
     let indiceActual = 0;
 
@@ -91,14 +91,9 @@
         } catch(e) { console.error("Error cargando filtros"); }
     };
 
-    /**
-     * getVal mejorado con tolerancia estricta a comillas, guiones bajos o espacios 
-     * provenientes del volcado del Apps Script.
-     */
     function getVal(obj, search) {
         const keys = Object.keys(obj);
         
-        // Mapeo de búsqueda de interfaz a las cabeceras reales del CSV backend
         const mapa = {
             "NOMBRE": "NOMBRE",
             "CELULAR": "CELULAR",
@@ -109,7 +104,6 @@
 
         const campoTecnico = mapa[search] || search;
 
-        // Comparamos limpiando rigurosamente espacios, comillas y barras bajas en ambas partes
         let key = keys.find(k => {
             const cleanKey = k.trim().replace(/[ '"_]/g, "").toUpperCase();
             const cleanSearch = campoTecnico.replace(/[ '"_]/g, "").toUpperCase();
@@ -117,7 +111,6 @@
         });
         
         let valor = key ? obj[key] : "";
-        // Retornamos quitando comillas dobles residuales
         return typeof valor === 'string' ? valor.replace(/"/g, "").trim() : valor;
     }
 
@@ -135,7 +128,30 @@
         try {
             const url = `${SCRIPT_URL}?exportar=true&desde=${fIniStr}&hasta=${fFinStr}&cons=${encodeURIComponent(consSel)}`;
             const resp = await fetch(url);
-            const csvText = await resp.text();
+            if (!resp.ok) throw new Error("Error en respuesta de red");
+            
+            const textoResp = await response.text();
+            let csvText = textoResp; 
+
+            // Decodificador inteligente de JSON Base64 binario
+            try {
+                const jsonResp = JSON.parse(textoResp);
+                if (jsonResp.success && jsonResp.base64Data) {
+                    const bytesBinarios = atob(jsonResp.base64Data);
+                    try {
+                        const decoder = new TextDecoder('utf-8');
+                        const arrayBytes = new Uint8Array(bytesBinarios.length);
+                        for (let i = 0; i < bytesBinarios.length; i++) {
+                            arrayBytes[i] = bytesBinarios.charCodeAt(i);
+                        }
+                        csvText = decoder.decode(arrayBytes);
+                    } catch(errDec) {
+                        csvText = decodeURIComponent(escape(bytesBinarios));
+                    }
+                }
+            } catch(e) {
+                console.log("Procesando formato de texto crudo directo.");
+            }
 
             Papa.parse(csvText, {
                 header: true,
@@ -143,8 +159,10 @@
                 complete: function(results) {
                     const turnoSel = document.getElementById('filtroTurno').value;
 
-                    // Filtrado en cliente de turnos y validación de celular base
                     pacientesGlobal = results.data.filter(p => {
+                        const nombreP = getVal(p, "NOMBRE");
+                        if (!nombreP) return false; 
+
                         const turnoP = (getVal(p, "TURNO") || "").toUpperCase();
                         const cel = (getVal(p, "CELULAR") || "").toString().replace(/\D/g, "");
                         const cumpleTurno = (turnoSel === "TODOS" || turnoP.includes(turnoSel));
@@ -153,18 +171,20 @@
                     });
 
                     indiceActual = 0;
-                    btn.innerText = "CONSULTAR CITADOS";
+                    btn.innerText = "Consultar Citados";
                     btn.disabled = false;
                     mostrarLista();
                     prepararSiguiente();
                     
-                    if(pacientesGlobal.length === 0) alert("No se encontraron citados para este rango/consultorio.");
+                    if(pacientesGlobal.length === 0) {
+                        alert("No se encontraron citados válidos con WhatsApp para este rango/consultorio.");
+                    }
                 }
             });
         } catch (err) {
             console.error(err);
             alert("Error de conexión con el servidor");
-            btn.innerText = "CONSULTAR CITADOS";
+            btn.innerText = "Consultar Citados";
             btn.disabled = false;
         }
     }
