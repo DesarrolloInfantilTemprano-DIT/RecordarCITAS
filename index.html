@@ -3,80 +3,275 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RECORDAR CITAS - DIT</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <title>RECORDAR CITAS - DIT 🧸</title>
     <style>
-        :root { --dark: #075E54; --wa: #25D366; --accent: #00a884; --error: #ef5350; }
-        body { font-family: 'Segoe UI', sans-serif; background-color: #333; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        :root { 
+            --primary: #4A90E2; 
+            --secondary: #FFB3BA; 
+            --accent: #50E3C2; 
+            --wa: #25D366; 
+            --dark: #2C3E50; 
+            --error: #FF6B6B;
+            --background: #FFF9E6;
+        }
         
-        .slideshow { position: fixed; width: 100%; height: 100%; top: 0; left: 0; z-index: -1; list-style: none; margin: 0; padding: 0; }
-        .slideshow li { width: 100%; height: 100%; position: absolute; background-size: cover; background-position: center; opacity: 0; animation: imageAnimation 20s linear infinite; }
-        .slideshow li:nth-child(1) { background-image: url('https://images.unsplash.com/photo-1584820923423-8f2df4777b71?q=80&w=1600'); }
-        .slideshow li:nth-child(2) { background-image: url('https://images.unsplash.com/photo-1532938911079-1b06ac7ceec7?q=80&w=1600'); animation-delay: 10s; }
-        @keyframes imageAnimation { 0% { opacity: 0; } 10% { opacity: 1; } 40% { opacity: 1; } 50% { opacity: 0; } }
-
-        .card { background: rgba(255, 255, 255, 0.96); padding: 25px; border-radius: 25px; width: 95%; max-width: 480px; box-shadow: 0 15px 45px rgba(0,0,0,0.6); backdrop-filter: blur(10px); }
-        h2 { color: var(--dark); text-align: center; text-transform: uppercase; font-weight: 800; font-size: 20px; margin-bottom: 20px; }
+        * { box-sizing: border-box; }
         
-        .filtros { display: flex; flex-direction: column; gap: 10px; background: white; padding: 15px; border-radius: 15px; border: 1px solid #eee; }
-        label { font-size: 10px; font-weight: 800; color: #777; text-transform: uppercase; margin-left: 5px; }
-        input, select, textarea { padding: 12px; border-radius: 10px; border: 1px solid #ddd; width: 100%; box-sizing: border-box; font-size: 14px; outline: none; }
+        body { 
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; 
+            background-color: var(--background); 
+            margin: 0; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            min-height: 100vh;
+            padding: 20px;
+        }
         
-        .btn-main { background: var(--accent); color: white; border: none; padding: 15px; border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 10px; text-transform: uppercase; width: 100%; }
-        .btn-next { background: #ff9800; color: white; padding: 18px; border-radius: 15px; text-align: center; text-decoration: none; display: none; font-weight: 900; margin-bottom: 15px; text-transform: uppercase; font-size: 13px; }
+        /* Fondo divertido con degradado pastel */
+        .bg-gradient {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: -1;
+            background: linear-gradient(135deg, #FFF9E6 0%, #E8F0FE 50%, #FFE5EC 100%);
+        }
 
-        .tarjeta { background: white; border-radius: 15px; padding: 15px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; border-left: 6px solid var(--accent); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-        .info b { display: block; color: var(--dark); font-size: 13px; text-transform: uppercase; }
-        .info span { font-size: 11px; color: #666; display: block; }
+        .card { 
+            background: rgba(255, 255, 255, 0.95); 
+            padding: 30px; 
+            border-radius: 30px; 
+            width: 100%; 
+            max-width: 500px; 
+            box-shadow: 0 20px 40px rgba(0,0,0,0.08); 
+            border: 4px solid #FFD1DC;
+        }
+        
+        h2 { 
+            color: var(--primary); 
+            text-align: center; 
+            text-transform: uppercase; 
+            font-weight: 800; 
+            font-size: 22px; 
+            margin-top: 0;
+            margin-bottom: 25px; 
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .filtros { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 12px; 
+            background: #F9FAFC; 
+            padding: 20px; 
+            border-radius: 20px; 
+            border: 2px dashed #B4D4FF; 
+        }
+        
+        label { 
+            font-size: 11px; 
+            font-weight: 800; 
+            color: var(--dark); 
+            text-transform: uppercase; 
+            margin-left: 5px; 
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        input, select, textarea { 
+            padding: 12px 15px; 
+            border-radius: 15px; 
+            border: 2px solid #E2E8F0; 
+            width: 100%; 
+            font-size: 14px; 
+            outline: none; 
+            transition: all 0.3s ease;
+            color: var(--dark);
+            background-color: white;
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.15);
+        }
+        
+        .btn-main { 
+            background: var(--primary); 
+            color: white; 
+            border: none; 
+            padding: 15px; 
+            border-radius: 15px; 
+            font-weight: bold; 
+            cursor: pointer; 
+            margin-top: 10px; 
+            text-transform: uppercase; 
+            width: 100%; 
+            font-size: 14px;
+            box-shadow: 0 6px 12px rgba(74, 144, 226, 0.2);
+            transition: all 0.2s ease;
+        }
+        
+        .btn-main:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 15px rgba(74, 144, 226, 0.3);
+        }
 
-        .actions { display: flex; flex-direction: column; gap: 8px; align-items: flex-end; }
-        .btn-send { background: var(--wa); color: white; text-decoration: none; padding: 8px 16px; border-radius: 20px; font-size: 11px; font-weight: bold; }
-        .btn-error { background: #fdfdfd; color: #bbb; border: 1px solid #eee; padding: 5px 10px; border-radius: 8px; font-size: 9px; cursor: pointer; }
+        .btn-next { 
+            background: #FF9F43; 
+            color: white; 
+            padding: 16px; 
+            border-radius: 18px; 
+            text-align: center; 
+            text-decoration: none; 
+            display: none; 
+            font-weight: 800; 
+            margin-bottom: 15px; 
+            text-transform: uppercase; 
+            font-size: 13px; 
+            box-shadow: 0 6px 12px rgba(255, 159, 67, 0.2);
+            transition: all 0.2s ease;
+        }
+        
+        .btn-next:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 15px rgba(255, 159, 67, 0.3);
+        }
 
-        #lista { max-height: 320px; overflow-y: auto; margin-top: 15px; }
-        #contador { text-align: center; font-size: 11px; color: #888; margin: 12px 0; font-weight: bold; }
+        .tarjeta { 
+            background: white; 
+            border-radius: 18px; 
+            padding: 15px; 
+            margin-bottom: 12px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            border-left: 6px solid var(--primary); 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.03); 
+            transition: all 0.3s ease;
+        }
+        
+        .info b { 
+            display: block; 
+            color: var(--dark); 
+            font-size: 14px; 
+            text-transform: uppercase; 
+            margin-bottom: 4px;
+        }
+        
+        .info span { 
+            font-size: 12px; 
+            color: #64748B; 
+            display: block; 
+            margin-bottom: 2px;
+        }
+
+        .actions { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 8px; 
+            align-items: flex-end; 
+        }
+        
+        .btn-send { 
+            background: var(--wa); 
+            color: white; 
+            text-decoration: none; 
+            padding: 8px 16px; 
+            border-radius: 20px; 
+            font-size: 11px; 
+            font-weight: bold; 
+            box-shadow: 0 4px 8px rgba(37, 211, 102, 0.2);
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .btn-send:hover { background: #20ba59; }
+        
+        .btn-error { 
+            background: #FFF5F5; 
+            color: #FF6B6B; 
+            border: 1px solid #FFE3E3; 
+            padding: 6px 12px; 
+            border-radius: 10px; 
+            font-size: 10px; 
+            cursor: pointer; 
+            font-weight: 600;
+        }
+        
+        .btn-error:hover { background: #FFE3E3; }
+
+        #lista { 
+            max-height: 320px; 
+            overflow-y: auto; 
+            margin-top: 15px; 
+            padding-right: 5px;
+        }
+        
+        #lista::-webkit-scrollbar { width: 6px; }
+        #lista::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
+        #lista::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        
+        #contador { 
+            text-align: center; 
+            font-size: 12px; 
+            color: #64748B; 
+            margin: 15px 0; 
+            font-weight: bold; 
+            background: #E8F0FE;
+            padding: 8px;
+            border-radius: 12px;
+            color: var(--primary);
+        }
     </style>
 </head>
 <body>
 
-<ul class="slideshow"><li></li><li></li></ul>
+<div class="bg-gradient"></div>
 
 <div class="card">
-    <h2>RECORDAR CITAS DIT</h2>
+    <h2>👶 Recordar Citas DIT 🧸</h2>
     
     <div class="filtros">
-        <label>Rango de Fecha:</label>
+        <label>📅 Rango de Fecha:</label>
         <div style="display: flex; gap: 8px;">
             <input type="date" id="fechaInicio">
             <input type="date" id="fechaFin">
         </div>
         
-        <label>Consultorio:</label>
+        <label>🏥 Consultorio:</label>
         <select id="filtroConsultorio">
-            <option value="TODOS">-- TODOS LOS CONSULTORIOS --</option>
+            <option value="TODOS">✨ TODOS LOS CONSULTORIOS ✨</option>
         </select>
 
-        <label>Turno:</label>
+        <label>⏰ Turno:</label>
         <select id="filtroTurno">
-            <option value="TODOS">TODOS LOS TURNOS</option>
-            <option value="MAÑANA">MAÑANA</option>
-            <option value="TARDE">TARDE</option>
+            <option value="TODOS">☀️ TODOS LOS TURNOS 🌙</option>
+            <option value="MAÑANA">☀️ MAÑANA</option>
+            <option value="TARDE">🌤️ TARDE</option>
         </select>
 
-        <label>Mensaje Adicional:</label>
-        <textarea id="msgAdicional" rows="2" placeholder="Ej: Traer carnet de vacunación..."></textarea>
+        <label>✍️ Mensaje Adicional:</label>
+        <textarea id="msgAdicional" rows="2" placeholder="Ej: Traer carnet de vacunación y DNI... 🌟"></textarea>
 
-        <button class="btn-main" onclick="cargarDatos()">Consultar Citados</button>
+        <button class="btn-main" onclick="cargarDatos()">🔍 Consultar Citados 🎈</button>
     </div>
     
-    <p id="contador">LISTO PARA CONSULTAR</p>
-    <a id="btnSiguiente" href="#" target="_blank" class="btn-next" onclick="marcarSiguiente()">ENVIAR AL SIGUIENTE</a>
+    <p id="contador">✨ LISTO PARA CONSULTAR ✨</p>
+    <a id="btnSiguiente" href="#" target="_blank" class="btn-next" onclick="marcarSiguiente()">🚀 ENVIAR AL SIGUIENTE 👶</a>
 
     <div id="lista"></div>
 </div>
 
 <script>
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyNJ6i2CQ-bEv5U13z4s26KFr14yq1Oh1-MWXsibiehmK2STbxRH-fdUOJL6wHxQuO9iQ/exec';
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbydZ10bsARO_VhZqeLhozyiiq7IlYquCHYyjvA6BL_Fr58V43td2D8yRzOQ7ZeqaYRUDA/exec'; // <-- Recuerda pegar tu URL aquí CITAS
     let pacientesGlobal = [];
     let indiceActual = 0;
 
@@ -86,33 +281,12 @@
             const data = await resp.json();
             const select = document.getElementById('filtroConsultorio');
             if(data.consultorios) {
-                data.consultorios.forEach(c => { if(c) select.innerHTML += `<option value="${c}">${c}</option>`; });
+                data.consultorios.forEach(c => { 
+                    if(c) select.innerHTML += `<option value="${c}">📍 ${c}</option>`; 
+                });
             }
         } catch(e) { console.error("Error cargando filtros"); }
     };
-
-    function getVal(obj, search) {
-        const keys = Object.keys(obj);
-        
-        const mapa = {
-            "NOMBRE": "NOMBRE",
-            "CELULAR": "CELULAR",
-            "FECHA DE CITA": "FECHA_CITA",
-            "TURNO": "TURNO",
-            "CONSULTORIO": "CONSULTORIO"
-        };
-
-        const campoTecnico = mapa[search] || search;
-
-        let key = keys.find(k => {
-            const cleanKey = k.trim().replace(/[ '"_]/g, "").toUpperCase();
-            const cleanSearch = campoTecnico.replace(/[ '"_]/g, "").toUpperCase();
-            return cleanKey === cleanSearch;
-        });
-        
-        let valor = key ? obj[key] : "";
-        return typeof valor === 'string' ? valor.replace(/"/g, "").trim() : valor;
-    }
 
     async function cargarDatos() {
         const btn = document.querySelector('.btn-main');
@@ -120,92 +294,70 @@
         const fFinStr = document.getElementById('fechaFin').value;
         const consSel = document.getElementById('filtroConsultorio').value;
 
-        if (!fIniStr || !fFinStr) return alert("Selecciona el rango de fechas");
+        if (!fIniStr || !fFinStr) return alert("Por favor, selecciona el rango de fechas 📅");
 
-        btn.innerText = "BUSCANDO...";
+        btn.innerText = "✨ BUSCANDO... 🚀";
         btn.disabled = true;
 
         try {
-            const url = `${SCRIPT_URL}?exportar=true&desde=${fIniStr}&hasta=${fFinStr}&cons=${encodeURIComponent(consSel)}`;
+            const url = `${SCRIPT_URL}?obtenerCitadosWeb=true&desde=${fIniStr}&hasta=${fFinStr}&cons=${encodeURIComponent(consSel)}`;
             const resp = await fetch(url);
             if (!resp.ok) throw new Error("Error en respuesta de red");
             
-            const textoResp = await response.text();
-            let csvText = textoResp; 
+            const jsonResp = await resp.json();
+            
+            if (jsonResp.success && jsonResp.data) {
+                const turnoSel = document.getElementById('filtroTurno').value;
 
-            // Decodificador inteligente de JSON Base64 binario
-            try {
-                const jsonResp = JSON.parse(textoResp);
-                if (jsonResp.success && jsonResp.base64Data) {
-                    const bytesBinarios = atob(jsonResp.base64Data);
-                    try {
-                        const decoder = new TextDecoder('utf-8');
-                        const arrayBytes = new Uint8Array(bytesBinarios.length);
-                        for (let i = 0; i < bytesBinarios.length; i++) {
-                            arrayBytes[i] = bytesBinarios.charCodeAt(i);
-                        }
-                        csvText = decoder.decode(arrayBytes);
-                    } catch(errDec) {
-                        csvText = decodeURIComponent(escape(bytesBinarios));
-                    }
-                }
-            } catch(e) {
-                console.log("Procesando formato de texto crudo directo.");
-            }
+                pacientesGlobal = jsonResp.data.filter(p => {
+                    const nombreP = p["NOMBRE"];
+                    if (!nombreP) return false; 
 
-            Papa.parse(csvText, {
-                header: true,
-                skipEmptyLines: true,
-                complete: function(results) {
-                    const turnoSel = document.getElementById('filtroTurno').value;
-
-                    pacientesGlobal = results.data.filter(p => {
-                        const nombreP = getVal(p, "NOMBRE");
-                        if (!nombreP) return false; 
-
-                        const turnoP = (getVal(p, "TURNO") || "").toUpperCase();
-                        const cel = (getVal(p, "CELULAR") || "").toString().replace(/\D/g, "");
-                        const cumpleTurno = (turnoSel === "TODOS" || turnoP.includes(turnoSel));
-                        
-                        return cel.length >= 9 && cumpleTurno;
-                    });
-
-                    indiceActual = 0;
-                    btn.innerText = "Consultar Citados";
-                    btn.disabled = false;
-                    mostrarLista();
-                    prepararSiguiente();
+                    const turnoP = (p["TURNO"] || "").toUpperCase();
+                    const cel = (p["CELULAR"] || "").toString().replace(/\D/g, "");
+                    const cumpleTurno = (turnoSel === "TODOS" || turnoP.includes(turnoSel));
                     
-                    if(pacientesGlobal.length === 0) {
-                        alert("No se encontraron citados válidos con WhatsApp para este rango/consultorio.");
-                    }
+                    return cel.length >= 9 && cumpleTurno;
+                });
+
+                indiceActual = 0;
+                btn.innerText = "🔍 Consultar Citados 🎈";
+                btn.disabled = false;
+                mostrarLista();
+                prepararSiguiente();
+                
+                if(pacientesGlobal.length === 0) {
+                    alert("No se encontraron citados válidos con WhatsApp para este rango o consultorio 🧸");
                 }
-            });
+            } else {
+                throw new Error("Estructura de datos incorrecta");
+            }
         } catch (err) {
             console.error(err);
-            alert("Error de conexión con el servidor");
-            btn.innerText = "Consultar Citados";
+            alert("Error de conexión con el servidor o al procesar los datos 💧");
+            btn.innerText = "🔍 Consultar Citados 🎈";
             btn.disabled = false;
         }
     }
 
     function mostrarLista() {
         const div = document.getElementById('lista');
-        document.getElementById('contador').innerText = `ENCONTRADOS: ${pacientesGlobal.length}`;
+        document.getElementById('contador').innerText = `👶 NIÑOS ENCONTRADOS: ${pacientesGlobal.length} 🧸`;
         div.innerHTML = "";
+        
         pacientesGlobal.forEach((p, i) => {
             const item = document.createElement('div');
             item.className = 'tarjeta';
             item.id = `pac-row-${i}`;
             item.innerHTML = `
                 <div class="info">
-                    <b>${getVal(p, "NOMBRE")}</b>
-                    <span>📅 ${getVal(p, "FECHA DE CITA")} | ⏰ ${getVal(p, "TURNO")}</span>
-                    <span style="font-size:9px; color:var(--accent);">📍 ${getVal(p, "CONSULTORIO")}</span>
+                    <b>👶 ${p["NOMBRE"]}</b>
+                    <span>📅 Cita: ${p["FECHA DE CITA"]} | ⏰ ${p["TURNO"]}</span>
+                    <span style="font-size:10px; color:var(--primary); font-weight: 600;">📍 ${p["CONSULTORIO"]}</span>
                 </div>
                 <div class="actions">
-                    <a href="#" class="btn-send" onclick="enviarIndividual(${i})">ENVIAR</a>
-                    <button class="btn-error" onclick="reportarError(${i})">SIN WA</button>
+                    <a href="#" class="btn-send" onclick="enviarIndividual(${i})">💬 ENVIAR</a>
+                    <button class="btn-error" onclick="reportarError(${i})">❌ SIN WA</button>
                 </div>
             `;
             div.appendChild(item);
@@ -214,18 +366,18 @@
 
     function generarLink(i) {
         const p = pacientesGlobal[i];
-        let cel = (getVal(p, "CELULAR") || "").toString().replace(/\D/g, "");
+        let cel = (p["CELULAR"] || "").toString().replace(/\D/g, "");
         if (cel.length === 9) cel = "51" + cel;
         const extra = document.getElementById('msgAdicional').value.trim();
         
-        const msg = `Hola, le saludamos del Centro de Salud *Castillo Grande*. Le recordamos la cita de *${getVal(p, "NOMBRE")}* para el día *${getVal(p, "FECHA DE CITA")}* en el turno *${getVal(p, "TURNO")}* (${getVal(p, "CONSULTORIO")}). Por favor, acuda puntualmente.${extra ? '\n\n📌 *Nota:* ' + extra : ''}`;
+        const msg = `Hola, le saludamos del Centro de Salud *Castillo Grande*. Le recordamos la cita de *${p["NOMBRE"]}* para el día *${p["FECHA DE CITA"]}* en el turno *${p["TURNO"]}* (${p["CONSULTORIO"]}). Por favor, acuda puntualmente.${extra ? '\n\n📌 *Nota:* ' + extra : ''}`;
         return `https://api.whatsapp.com/send?phone=${cel}&text=${encodeURIComponent(msg)}`;
     }
 
     function enviarIndividual(i) { window.open(generarLink(i), '_blank'); marcarVisto(i); }
 
     function reportarError(i) {
-        const cel = (getVal(pacientesGlobal[i], "CELULAR") || "").toString().replace(/\D/g, "");
+        const cel = (pacientesGlobal[i]["CELULAR"] || "").toString().replace(/\D/g, "");
         fetch(`${SCRIPT_URL}?errorNum=${cel}`, { mode: 'no-cors' });
         marcarVisto(i, true);
     }
@@ -235,8 +387,8 @@
         if (indiceActual < pacientesGlobal.length) {
             btn.href = generarLink(indiceActual);
             btn.style.display = 'block';
-            const nom = getVal(pacientesGlobal[indiceActual], "NOMBRE") || "PACIENTE";
-            btn.innerText = `SIGUIENTE: ${nom.split(' ')[0]}`;
+            const nom = pacientesGlobal[indiceActual]["NOMBRE"] || "PACIENTE";
+            btn.innerText = `🚀 SIGUIENTE: ${nom.split(' ')[0]} 👶`;
         } else { btn.style.display = 'none'; }
     }
 
@@ -245,7 +397,7 @@
     function marcarVisto(i, err = false) {
         const row = document.getElementById(`pac-row-${i}`);
         if(row) {
-            row.style.opacity = "0.3";
+            row.style.opacity = "0.35";
             row.style.background = err ? "#fff0f0" : "#f5f5f5";
             const b = row.querySelector('.btn-send');
             if(b) b.style.pointerEvents = "none";
