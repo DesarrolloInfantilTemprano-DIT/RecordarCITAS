@@ -370,7 +370,7 @@
         if (cel.length === 9) cel = "51" + cel;
         const extra = document.getElementById('msgAdicional').value.trim();
         
-        const msg = `Hola, le saludamos del Centro de Salud *Castillo Grande*. Le recordamos la cita de *${p["NOMBRE"]}* para el día *${p["FECHA DE CITA"]}* en el turno *${p["TURNO"]}* (${p["CONSULTORIO"]}). Por favor, acuda puntualmente.${extra ? '\n\n📌 *Nota:* ' + extra : ''}`;
+        const msg = `Hola, le saludamos del Centro de Salud *Castillo Grande*. Le recordamos la cita de *${p["NOMBRE"]}* para el día *${p["FECHA DE CITA"]}* en el turno *${p["TURNO"]}* (${p["CONSULTORIO"]}). RECUERDE que ahora puedes obtener tu carnet virutal por el grupo de whastpp https://chat.whatsapp.com/FELCvT889zo265G8LkVkPY ${extra ? '\n\n📌 *Nota:* ' + extra : ''}`;
         return `https://api.whatsapp.com/send?phone=${cel}&text=${encodeURIComponent(msg)}`;
     }
 
