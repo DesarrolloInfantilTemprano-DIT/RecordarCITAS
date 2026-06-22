@@ -28,7 +28,6 @@
             padding: 20px;
         }
         
-        /* Fondo divertido con degradado pastel */
         .bg-gradient {
             position: fixed;
             width: 100%;
@@ -271,7 +270,7 @@
 </div>
 
 <script>
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzIcCvRp2RzrpiwVQj0I2px-uS5gGNgXlUOVhJv9Nkbzb6GqYOM0HO3a9FhQBnMIwRepA/exec'; // <-- Recuerda pegar tu URL aquí CITAS
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzIcCvRp2RzrpiwVQj0I2px-uS5gGNgXlUOVhJv9Nkbzb6GqYOM0HO3a9FhQBnMIwRepA/exec';
     let pacientesGlobal = [];
     let indiceActual = 0;
 
@@ -308,18 +307,28 @@
             
             if (jsonResp.success && jsonResp.data) {
                 const turnoSel = document.getElementById('filtroTurno').value;
+                let listaProcesada = [];
 
-                pacientesGlobal = jsonResp.data.filter(p => {
+                // Mejora: Procesar múltiples números (separados por , / -) y mantener edad
+                jsonResp.data.forEach(p => {
                     const nombreP = p["NOMBRE"];
-                    if (!nombreP) return false; 
+                    if (!nombreP) return;
 
                     const turnoP = (p["TURNO"] || "").toUpperCase();
-                    const cel = (p["CELULAR"] || "").toString().replace(/\D/g, "");
                     const cumpleTurno = (turnoSel === "TODOS" || turnoP.includes(turnoSel));
                     
-                    return cel.length >= 9 && cumpleTurno;
+                    if (cumpleTurno) {
+                        const listaCels = (p["CELULAR"] || "").toString().split(/[,\/-]/);
+                        listaCels.forEach(celRaw => {
+                            const cel = celRaw.trim().replace(/\D/g, "");
+                            if (cel.length >= 9) {
+                                listaProcesada.push({ ...p, CELULAR: cel });
+                            }
+                        });
+                    }
                 });
 
+                pacientesGlobal = listaProcesada;
                 indiceActual = 0;
                 btn.innerText = "🔍 Consultar Citados 🎈";
                 btn.disabled = false;
@@ -349,9 +358,11 @@
             const item = document.createElement('div');
             item.className = 'tarjeta';
             item.id = `pac-row-${i}`;
+            // Mejora: Se muestra la edad si existe en el JSON
+            const edadDisplay = p["EDAD"] ? ` | 🎂 ${p["EDAD"]} años` : "";
             item.innerHTML = `
                 <div class="info">
-                    <b>👶 ${p["NOMBRE"]}</b>
+                    <b>👶 ${p["NOMBRE"]} ${edadDisplay}</b>
                     <span>📅 Cita: ${p["FECHA DE CITA"]} | ⏰ ${p["TURNO"]}</span>
                     <span style="font-size:10px; color:var(--primary); font-weight: 600;">📍 ${p["CONSULTORIO"]}</span>
                 </div>
@@ -366,18 +377,20 @@
 
     function generarLink(i) {
         const p = pacientesGlobal[i];
-        let cel = (p["CELULAR"] || "").toString().replace(/\D/g, "");
+        let cel = p["CELULAR"]; // Ya viene procesado como string de 9+ digitos
         if (cel.length === 9) cel = "51" + cel;
-        const extra = document.getElementById('msgAdicional').value.trim();
         
-        const msg = `Hola, le saludamos del Centro de Salud *Castillo Grande*. Le recordamos la cita de *${p["NOMBRE"]}* para el día *${p["FECHA DE CITA"]}* en el turno *${p["TURNO"]}* (${p["CONSULTORIO"]}). RECUERDE que ahora puedes obtener tu carnet virutal por el grupo de whastpp https://chat.whatsapp.com/FELCvT889zo265G8LkVkPY ${extra ? '\n\n📌 *Nota:* ' + extra : ''}`;
+        const extra = document.getElementById('msgAdicional').value.trim();
+        const edadDisplay = p["EDAD"] ? ` (${p["EDAD"]} años)` : "";
+        
+        const msg = `Hola, le saludamos del Centro de Salud *Castillo Grande*. Le recordamos la cita de *${p["NOMBRE"]}*${edadDisplay} para el día *${p["FECHA DE CITA"]}* en el turno *${p["TURNO"]}* (${p["CONSULTORIO"]}). RECUERDE que ahora puedes obtener tu carnet virtual por el grupo de whatsapp https://chat.whatsapp.com/FELCvT889zo265G8LkVkPY ${extra ? '\n\n📌 *Nota:* ' + extra : ''}`;
         return `https://api.whatsapp.com/send?phone=${cel}&text=${encodeURIComponent(msg)}`;
     }
 
     function enviarIndividual(i) { window.open(generarLink(i), '_blank'); marcarVisto(i); }
 
     function reportarError(i) {
-        const cel = (pacientesGlobal[i]["CELULAR"] || "").toString().replace(/\D/g, "");
+        const cel = pacientesGlobal[i]["CELULAR"];
         fetch(`${SCRIPT_URL}?errorNum=${cel}`, { mode: 'no-cors' });
         marcarVisto(i, true);
     }
