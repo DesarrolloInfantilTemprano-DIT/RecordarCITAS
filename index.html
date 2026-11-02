@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RECORDAR CITAS - DIT 🧸</title>
+    <title>RECORDAR CITAS 🧸</title>
     <style>
         :root { 
             --primary: #4A90E2; 
@@ -221,7 +221,6 @@
         #contador { 
             text-align: center; 
             font-size: 12px; 
-            color: #64748B; 
             margin: 15px 0; 
             font-weight: bold; 
             background: #E8F0FE;
@@ -292,57 +291,77 @@
         }
     };
 
-    // Función auxiliar para convertir de YYYY-MM-DD a DD/MM/YYYY
-    function formatearAFechaDDMMYYYY(fechaStr) {
-        if (!fechaStr) return "";
-        const partes = fechaStr.split("-"); // [YYYY, MM, DD]
-        if (partes.length !== 3) return fechaStr;
-        return `${partes[2]}/${partes[1]}/${partes[0]}`;
+    // Función universal para normalizar cualquier string o Date de fecha a ISO YYYY-MM-DD
+    function normalizarAFechaISO(str) {
+        if (!str) return "";
+        let s = str.toString().trim().replace(/'/g, "");
+        if (s.includes("/")) {
+            let p = s.split("/");
+            if (p.length === 3) {
+                // DD/MM/YYYY -> YYYY-MM-DD
+                return `${p[2]}-${p[1].padStart(2, '0')}-${p[0].padStart(2, '0')}`;
+            }
+        }
+        return s;
     }
 
     async function cargarDatos() {
         const btn = document.querySelector('.btn-main');
-        const fIniRaw = document.getElementById('fechaInicio').value;
-        const fFinRaw = document.getElementById('fechaFin').value;
+        const fIniRaw = document.getElementById('fechaInicio').value; // YYYY-MM-DD
+        const fFinRaw = document.getElementById('fechaFin').value;   // YYYY-MM-DD
         const consSel = document.getElementById('filtroConsultorio').value;
+        const turnoSel = document.getElementById('filtroTurno').value;
 
         if (!fIniRaw || !fFinRaw) return alert("Por favor, selecciona el rango de fechas 📅");
-
-        // Transformamos a formato DD/MM/YYYY para que coincida con el Google Sheet
-        const fIniStr = formatearAFechaDDMMYYYY(fIniRaw);
-        const fFinStr = formatearAFechaDDMMYYYY(fFinRaw);
 
         btn.innerText = "✨ BUSCANDO... 🚀";
         btn.disabled = true;
 
         try {
-            const url = `${SCRIPT_CITAS}?obtenerCitadosWeb=true&desde=${encodeURIComponent(fIniStr)}&hasta=${encodeURIComponent(fFinStr)}&cons=${encodeURIComponent(consSel)}`;
+            // Le pedimos al script de citas los registros enviando 'TODOS' en los filtros de url 
+            // para realizar la comparación de fecha inteligente del lado del cliente
+            const url = `${SCRIPT_CITAS}?obtenerCitadosWeb=true&desde=${fIniRaw}&hasta=${fFinRaw}&cons=TODOS&turno=TODOS`;
             const resp = await fetch(url);
             if (!resp.ok) throw new Error("Error en respuesta de red");
             
             const jsonResp = await resp.json();
             
             if (jsonResp.success && jsonResp.data) {
-                const turnoSel = document.getElementById('filtroTurno').value;
                 let listaProcesada = [];
 
                 jsonResp.data.forEach(p => {
                     const nombreP = p["NOMBRE"];
                     if (!nombreP) return;
 
-                    const turnoP = (p["TURNO"] || "").toUpperCase();
-                    const cumpleTurno = (turnoSel === "TODOS" || turnoP.includes(turnoSel));
-                    
-                    if (cumpleTurno) {
-                        const t1 = (p["TELFORNO-1"] || "").toString();
-                        const t2 = (p["TELFORNO-2"] || "").toString();
+                    // Normalizamos la fecha de la cita que viene de la hoja
+                    const fechaFilaRaw = p["FECHA_CITA"] || p["FECHA DE CITA"] || "";
+                    const fechaFilaISO = normalizarAFechaISO(fechaFilaRaw);
+
+                    // Verificación de rango de fecha del lado del cliente
+                    const enRangoFecha = (fechaFilaISO >= fIniRaw && fechaFilaISO <= fFinRaw);
+
+                    // Verificación de consultorio y turno
+                    const consFila = (p["CONSULTORIO"] || "").toUpperCase();
+                    const turnoFila = (p["TURNO"] || "").toUpperCase();
+
+                    const cumpleCons = (consSel === "TODOS" || consSel === "" || consFila === consSel.toUpperCase());
+                    const cumpleTurno = (turnoSel === "TODOS" || turnoSel === "" || turnoFila.includes(turnoSel.toUpperCase()));
+
+                    if (enRangoFecha && cumpleCons && cumpleTurno) {
+                        // Compatibilidad multi-clave para números telefónicos (TELFONO-1, TELFORNO-1, TELEFONO-1)
+                        const t1 = (p["TELFORNO-1"] || p["TELFONO-1"] || p["TELEFONO-1"] || p["CELULAR"] || "").toString();
+                        const t2 = (p["TELFORNO-2"] || p["TELFONO-2"] || p["TELEFONO-2"] || p["CELULAR_2"] || "").toString();
                         const combinedTels = `${t1},${t2}`;
 
                         const listaCels = combinedTels.split(/[,\/-]/);
                         listaCels.forEach(celRaw => {
                             const cel = celRaw.trim().replace(/\D/g, "");
                             if (cel.length >= 9) {
-                                listaProcesada.push({ ...p, CELULAR: cel });
+                                listaProcesada.push({ 
+                                    ...p, 
+                                    CELULAR: cel,
+                                    FECHA_CITA_MOSTRAR: fechaFilaRaw
+                                });
                             }
                         });
                     }
@@ -379,10 +398,11 @@
             item.className = 'tarjeta';
             item.id = `pac-row-${i}`;
             const edadDisplay = p["EDAD"] ? ` | 🎂 ${p["EDAD"]}` : "";
+            const fechaCita = p["FECHA_CITA_MOSTRAR"] || p["FECHA_CITA"] || p["FECHA DE CITA"];
             item.innerHTML = `
                 <div class="info">
                     <b>👶 ${p["NOMBRE"]} ${edadDisplay}</b>
-                    <span>📅 Cita: ${p["FECHA_CITA"]} | ⏰ ${p["TURNO"]}</span>
+                    <span>📅 Cita: ${fechaCita} | ⏰ ${p["TURNO"]}</span>
                     <span style="font-size:10px; color:var(--primary); font-weight: 600;">📍 ${p["CONSULTORIO"]} | DNI: ${p["DNI"] || "N/A"}</span>
                 </div>
                 <div class="actions">
@@ -401,8 +421,9 @@
         
         const extra = document.getElementById('msgAdicional').value.trim();
         const edadDisplay = p["EDAD"] ? ` (${p["EDAD"]})` : "";
+        const fechaCita = p["FECHA_CITA_MOSTRAR"] || p["FECHA_CITA"] || p["FECHA DE CITA"];
         
-        const msg = `Hola, le saludamos del Centro de Salud *Castillo Grande*. Le recordamos la cita de *${p["NOMBRE"]}*${edadDisplay} para el día *${p["FECHA_CITA"]}* en el turno *${p["TURNO"]}* (${p["CONSULTORIO"]}). RECUERDE que ahora puedes obtener tu carnet virtual por el grupo de whatsapp https://chat.whatsapp.com/FELCvT889zo265G8LkVkPY ${extra ? '\n\n📌 *Nota:* ' + extra : ''}`;
+        const msg = `Hola, le saludamos del Centro de Salud *Castillo Grande*. Le recordamos la cita de *${p["NOMBRE"]}*${edadDisplay} para el día *${fechaCita}* en el turno *${p["TURNO"]}* (${p["CONSULTORIO"]}). RECUERDE que ahora puedes obtener tu carnet virtual por el grupo de whatsapp https://chat.whatsapp.com/FELCvT889zo265G8LkVkPY ${extra ? '\n\n📌 *Nota:* ' + extra : ''}`;
         return `https://api.whatsapp.com/send?phone=${cel}&text=${encodeURIComponent(msg)}`;
     }
 
