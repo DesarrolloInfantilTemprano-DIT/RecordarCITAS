@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RECORDAR 77 CITAS 🧸</title>
+    <title>RECORDAR CITAS 25 🧸</title>
     <style>
         :root { 
             --primary: #3B5998; 
@@ -396,7 +396,7 @@
 
 <script>
     const SCRIPT_CITAS = 'https://script.google.com/macros/s/AKfycbwLOYe1VYgfQNRR9O0xeHXSAyUYnaXYbbcKBsDBGkoOYwfrD9X_lJfZzA7dvK_1LeSk/exec';
-    const SCRIPT_ADMIN = 'https://script.google.com/macros/s/AKfycbxmqviwzICjqWFCu9S5cx0Jb4Kp3Si9CcDLmEEALkgKH6VCAmzRJ66SLtPZaBjmbbqu/exec';
+    const SCRIPT_ADMIN = 'https://script.google.com/macros/s/AKfycbyWCu9LW3plqqE78CXs0nNd9fbJaVjtPyUz27cXQ7tkomBgVmrtgds3xQN7ih6--AeV/exec';
     
     let pacientesGlobal = [];
     let indiceActual = 0;
@@ -410,12 +410,12 @@
 
     window.onload = async () => {
         try {
-            // Cargar Consultorios
+            // Cargar Consultorios desde Admin
             const respC = await fetch(`${SCRIPT_ADMIN}?getConsultorios=true`);
             const dataC = await respC.json();
             listaConsultoriosAdmin = dataC.consultorios || (Array.isArray(dataC) ? dataC : []);
 
-            // Cargar Sectores (Columna D de ADMIN)
+            // Cargar Sectores desde Admin
             const respS = await fetch(`${SCRIPT_ADMIN}?getSectores=true`);
             const dataS = await respS.json();
             listaSectoresAdmin = dataS.sectores || (Array.isArray(dataS) ? dataS : []);
@@ -496,8 +496,8 @@
     function normalizarTexto(str) {
         if (!str) return "";
         return str.toString().trim().toUpperCase()
-            .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // Elimina tildes
-            .replace(/[^A-Z0-9]/g, ""); // Deja solo letras y números
+            .normalize("NFD").replace(/[\u0300-\u036f]/g, "") 
+            .replace(/[^A-Z0-9]/g, ""); 
     }
 
     function normalizarAFechaISO(str) {
@@ -531,6 +531,18 @@
             const jsonResp = await resp.json();
             
             if (jsonResp.success && jsonResp.data) {
+                // FALLBACK INTELIGENTE: Si las listas de admin están vacías, extraer automáticamente de los datos de citas
+                if (listaSectoresAdmin.length === 0) {
+                    let setSec = new Set();
+                    jsonResp.data.forEach(p => { if (p["SECTOR"]) setSec.add(p["SECTOR"].toString().trim()); });
+                    listaSectoresAdmin = Array.from(setSec).filter(Boolean);
+                }
+                if (listaConsultoriosAdmin.length === 0) {
+                    let setCon = new Set();
+                    jsonResp.data.forEach(p => { if (p["CONSULTORIO"]) setCon.add(p["CONSULTORIO"].toString().trim()); });
+                    listaConsultoriosAdmin = Array.from(setCon).filter(Boolean);
+                }
+
                 let listaProcesada = [];
 
                 jsonResp.data.forEach(p => {
