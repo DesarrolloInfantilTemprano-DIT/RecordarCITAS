@@ -252,7 +252,7 @@
 
         <label>⏰ Turno:</label>
         <select id="filtroTurno">
-            <option value="TODOS"> TODOS LOS TURNOS </option>
+            <option value="TODOS">☀️ TODOS LOS TURNOS 🌙</option>
             <option value="MAÑANA">☀️ MAÑANA</option>
             <option value="TARDE">🌤️ TARDE</option>
         </select>
@@ -292,19 +292,31 @@
         }
     };
 
+    // Función auxiliar para convertir de YYYY-MM-DD a DD/MM/YYYY
+    function formatearAFechaDDMMYYYY(fechaStr) {
+        if (!fechaStr) return "";
+        const partes = fechaStr.split("-"); // [YYYY, MM, DD]
+        if (partes.length !== 3) return fechaStr;
+        return `${partes[2]}/${partes[1]}/${partes[0]}`;
+    }
+
     async function cargarDatos() {
         const btn = document.querySelector('.btn-main');
-        const fIniStr = document.getElementById('fechaInicio').value;
-        const fFinStr = document.getElementById('fechaFin').value;
+        const fIniRaw = document.getElementById('fechaInicio').value;
+        const fFinRaw = document.getElementById('fechaFin').value;
         const consSel = document.getElementById('filtroConsultorio').value;
 
-        if (!fIniStr || !fFinStr) return alert("Por favor, selecciona el rango de fechas 📅");
+        if (!fIniRaw || !fFinRaw) return alert("Por favor, selecciona el rango de fechas 📅");
+
+        // Transformamos a formato DD/MM/YYYY para que coincida con el Google Sheet
+        const fIniStr = formatearAFechaDDMMYYYY(fIniRaw);
+        const fFinStr = formatearAFechaDDMMYYYY(fFinRaw);
 
         btn.innerText = "✨ BUSCANDO... 🚀";
         btn.disabled = true;
 
         try {
-            const url = `${SCRIPT_CITAS}?obtenerCitadosWeb=true&desde=${fIniStr}&hasta=${fFinStr}&cons=${encodeURIComponent(consSel)}`;
+            const url = `${SCRIPT_CITAS}?obtenerCitadosWeb=true&desde=${encodeURIComponent(fIniStr)}&hasta=${encodeURIComponent(fFinStr)}&cons=${encodeURIComponent(consSel)}`;
             const resp = await fetch(url);
             if (!resp.ok) throw new Error("Error en respuesta de red");
             
@@ -322,7 +334,6 @@
                     const cumpleTurno = (turnoSel === "TODOS" || turnoP.includes(turnoSel));
                     
                     if (cumpleTurno) {
-                        // Combinamos TELFORNO-1 y TELFORNO-2 por si acaso, o evaluamos ambos
                         const t1 = (p["TELFORNO-1"] || "").toString();
                         const t2 = (p["TELFORNO-2"] || "").toString();
                         const combinedTels = `${t1},${t2}`;
@@ -330,7 +341,6 @@
                         const listaCels = combinedTels.split(/[,\/-]/);
                         listaCels.forEach(celRaw => {
                             const cel = celRaw.trim().replace(/\D/g, "");
-                            // Ignoramos ceros solos (como el "0" común de TELFORNO-2 en la imagen)
                             if (cel.length >= 9) {
                                 listaProcesada.push({ ...p, CELULAR: cel });
                             }
