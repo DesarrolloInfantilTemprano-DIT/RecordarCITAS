@@ -271,20 +271,28 @@
 
 <script>
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwLOYe1VYgfQNRR9O0xeHXSAyUYnaXYbbcKBsDBGkoOYwfrD9X_lJfZzA7dvK_1LeSk/exec';
+    const SCRIPT_ADMIN = 'https://script.google.com/macros/s/AKfycbyWCu9LW3plqqE78CXs0nNd9fbJaVjtPyUz27cXQ7tkomBgVmrtgds3xQN7ih6--AeV/exec';
+    
     let pacientesGlobal = [];
     let indiceActual = 0;
 
     window.onload = async () => {
         try {
-            const resp = await fetch(`${SCRIPT_URL}?getFiltros=true`);
+            // Se consulta a la URL de Admin para obtener los consultorios de la hoja ADMIN, columna C
+            const resp = await fetch(`${SCRIPT_ADMIN}?getConsultorios=true`);
             const data = await resp.json();
             const select = document.getElementById('filtroConsultorio');
-            if(data.consultorios) {
-                data.consultorios.forEach(c => { 
+            
+            // Verificamos si la respuesta contiene la lista de consultorios
+            const listaConsultorios = data.consultorios || data;
+            if(Array.isArray(listaConsultorios)) {
+                listaConsultorios.forEach(c => { 
                     if(c) select.innerHTML += `<option value="${c}">📍 ${c}</option>`; 
                 });
             }
-        } catch(e) { console.error("Error cargando filtros"); }
+        } catch(e) { 
+            console.error("Error cargando consultorios desde ADMIN", e); 
+        }
     };
 
     async function cargarDatos() {
@@ -309,7 +317,6 @@
                 const turnoSel = document.getElementById('filtroTurno').value;
                 let listaProcesada = [];
 
-                // Mejora: Procesar múltiples números (separados por , / -) y mantener edad
                 jsonResp.data.forEach(p => {
                     const nombreP = p["NOMBRE"];
                     if (!nombreP) return;
@@ -358,7 +365,6 @@
             const item = document.createElement('div');
             item.className = 'tarjeta';
             item.id = `pac-row-${i}`;
-            // Mejora: Se muestra la edad si existe en el JSON
             const edadDisplay = p["EDAD"] ? ` | 🎂 ${p["EDAD"]} años` : "";
             item.innerHTML = `
                 <div class="info">
@@ -377,7 +383,7 @@
 
     function generarLink(i) {
         const p = pacientesGlobal[i];
-        let cel = p["CELULAR"]; // Ya viene procesado como string de 9+ digitos
+        let cel = p["CELULAR"]; 
         if (cel.length === 9) cel = "51" + cel;
         
         const extra = document.getElementById('msgAdicional').value.trim();
