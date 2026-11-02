@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RECORDAR CITAS SALUD 🧸</title>
+    <title>RECORDAR CITAS 2026 🧸</title>
     <style>
         :root { 
             --primary: #4A90E2; 
@@ -236,6 +236,11 @@
             <option value="TODOS">✨ TODOS LOS CONSULTORIOS ✨</option>
         </select>
 
+        <label>🏠 Sector:</label>
+        <select id="filtroSector">
+            <option value="TODOS">✨ TODOS LOS SECTORES ✨</option>
+        </select>
+
         <label>⏰ Turno:</label>
         <select id="filtroTurno">
             <option value="TODOS">☀️ TODOS LOS TURNOS 🌙</option>
@@ -264,28 +269,38 @@
 
     window.onload = async () => {
         try {
-            const resp = await fetch(`${SCRIPT_ADMIN}?getConsultorios=true`);
+            // Carga simultánea de Consultorios y Sectores desde SCRIPT_ADMIN
+            const resp = await fetch(`${SCRIPT_ADMIN}?getFiltrosAdmin=true`);
             const data = await resp.json();
-            const select = document.getElementById('filtroConsultorio');
+            
+            // Poblar Consultorios
+            const selectCons = document.getElementById('filtroConsultorio');
             const listaConsultorios = data.consultorios || data;
             if(Array.isArray(listaConsultorios)) {
                 listaConsultorios.forEach(c => { 
-                    if(c) select.innerHTML += `<option value="${c}">📍 ${c}</option>`; 
+                    if(c) selectCons.innerHTML += `<option value="${c}">📍 ${c}</option>`; 
+                });
+            }
+
+            // Poblar Sectores (Columna D de ADMIN)
+            const selectSector = document.getElementById('filtroSector');
+            const listaSectores = data.sectores || [];
+            if(Array.isArray(listaSectores)) {
+                listaSectores.forEach(s => { 
+                    if(s) selectSector.innerHTML += `<option value="${s}">🏠 ${s}</option>`; 
                 });
             }
         } catch(e) { 
-            console.error("Error cargando consultorios desde ADMIN", e); 
+            console.error("Error cargando filtros desde ADMIN", e); 
         }
     };
 
-    // Función universal para normalizar cualquier string o Date de fecha a ISO YYYY-MM-DD
     function normalizarAFechaISO(str) {
         if (!str) return "";
         let s = str.toString().trim().replace(/'/g, "");
         if (s.includes("/")) {
             let p = s.split("/");
             if (p.length === 3) {
-                // DD/MM/YYYY -> YYYY-MM-DD
                 return `${p[2]}-${p[1].padStart(2, '0')}-${p[0].padStart(2, '0')}`;
             }
         }
@@ -294,9 +309,10 @@
 
     async function cargarDatos() {
         const btn = document.querySelector('.btn-main');
-        const fIniRaw = document.getElementById('fechaInicio').value; // YYYY-MM-DD
-        const fFinRaw = document.getElementById('fechaFin').value;   // YYYY-MM-DD
+        const fIniRaw = document.getElementById('fechaInicio').value; 
+        const fFinRaw = document.getElementById('fechaFin').value;   
         const consSel = document.getElementById('filtroConsultorio').value;
+        const sectorSel = document.getElementById('filtroSector').value;
         const turnoSel = document.getElementById('filtroTurno').value;
 
         if (!fIniRaw || !fFinRaw) return alert("Por favor, selecciona el rango de fechas 📅");
@@ -323,13 +339,14 @@
 
                     const enRangoFecha = (fechaFilaISO >= fIniRaw && fechaFilaISO <= fFinRaw);
                     const consFila = (p["CONSULTORIO"] || "").toUpperCase();
+                    const sectorFila = (p["SECTOR"] || "").toUpperCase();
                     const turnoFila = (p["TURNO"] || "").toUpperCase();
 
                     const cumpleCons = (consSel === "TODOS" || consSel === "" || consFila === consSel.toUpperCase());
+                    const cumpleSector = (sectorSel === "TODOS" || sectorSel === "" || sectorFila === sectorSel.toUpperCase());
                     const cumpleTurno = (turnoSel === "TODOS" || turnoSel === "" || turnoFila.includes(turnoSel.toUpperCase()));
 
-                    if (enRangoFecha && cumpleCons && cumpleTurno) {
-                        // Extracción de teléfonos segura para evitar duplicados (se busca el primer número válido de 9+ dígitos)
+                    if (enRangoFecha && cumpleCons && cumpleSector && cumpleTurno) {
                         const t1 = (p["TELFORNO-1"] || p["TELFONO-1"] || p["TELEFONO-1"] || p["CELULAR"] || "").toString();
                         const t2 = (p["TELFORNO-2"] || p["TELFONO-2"] || p["TELEFONO-2"] || p["CELULAR_2"] || "").toString();
                         
@@ -347,10 +364,9 @@
                             }
                         }
 
-                        // Solo se agrega si tiene un número válido (evita registros sin WhatsApp)
                         if (telefonoValido.length >= 9) {
                             let gpsVal = (p["GPS"] || "").toString().trim();
-                            let gpsDisplay = (gpsVal && gpsVal !== "0" && gpsVal !== "-") ? gpsVal : "No tiene";
+                            let gpsDisplay = (gpsVal && gpsVal !== "0" && gpsVal !== "-") ? "Ubicado" : "No tiene";
 
                             listaProcesada.push({ 
                                 ...p, 
@@ -370,7 +386,7 @@
                 prepararSiguiente();
                 
                 if(pacientesGlobal.length === 0) {
-                    alert("No se encontraron citados válidos con WhatsApp para este rango o consultorio 🧸");
+                    alert("No se encontraron citados válidos con WhatsApp para este rango o filtros seleccionados 🧸");
                 }
             } else {
                 throw new Error("Estructura de datos incorrecta");
@@ -398,7 +414,7 @@
                 <div class="info">
                     <b>👶 ${p["NOMBRE"]} ${edadDisplay}</b>
                     <span>📅 Cita: ${fechaCita} | ⏰ ${p["TURNO"]}</span>
-                    <span style="font-size:10px; color:var(--primary); font-weight: 600;">📍 ${p["CONSULTORIO"]} | DNI: ${p["DNI"] || "N/A"} | GPS: ${p["GPS_STATUS"]}</span>
+                    <span style="font-size:10px; color:var(--primary); font-weight: 600;">📍 ${p["CONSULTORIO"]} | 🏠 ${p["SECTOR"] || "S/S"} | GPS: ${p["GPS_STATUS"]}</span>
                 </div>
                 <div class="actions">
                     <a href="#" class="btn-send" onclick="enviarIndividual(${i})">💬 ENVIAR</a>
