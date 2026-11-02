@@ -193,19 +193,6 @@
         }
         
         .btn-send:hover { background: #20ba59; }
-        
-        .btn-error { 
-            background: #FFF5F5; 
-            color: #FF6B6B; 
-            border: 1px solid #FFE3E3; 
-            padding: 6px 12px; 
-            border-radius: 10px; 
-            font-size: 10px; 
-            cursor: pointer; 
-            font-weight: 600;
-        }
-        
-        .btn-error:hover { background: #FFE3E3; }
 
         #lista { 
             max-height: 320px; 
@@ -235,7 +222,7 @@
 <div class="bg-gradient"></div>
 
 <div class="card">
-    <h2>👶 Recordar Citas DIT 🧸</h2>
+    <h2>👶 Recordar Citas 🧸</h2>
     
     <div class="filtros">
         <label>📅 Rango de Fecha:</label>
@@ -318,8 +305,6 @@
         btn.disabled = true;
 
         try {
-            // Le pedimos al script de citas los registros enviando 'TODOS' en los filtros de url 
-            // para realizar la comparación de fecha inteligente del lado del cliente
             const url = `${SCRIPT_CITAS}?obtenerCitadosWeb=true&desde=${fIniRaw}&hasta=${fFinRaw}&cons=TODOS&turno=TODOS`;
             const resp = await fetch(url);
             if (!resp.ok) throw new Error("Error en respuesta de red");
@@ -333,14 +318,10 @@
                     const nombreP = p["NOMBRE"];
                     if (!nombreP) return;
 
-                    // Normalizamos la fecha de la cita que viene de la hoja
                     const fechaFilaRaw = p["FECHA_CITA"] || p["FECHA DE CITA"] || "";
                     const fechaFilaISO = normalizarAFechaISO(fechaFilaRaw);
 
-                    // Verificación de rango de fecha del lado del cliente
                     const enRangoFecha = (fechaFilaISO >= fIniRaw && fechaFilaISO <= fFinRaw);
-
-                    // Verificación de consultorio y turno
                     const consFila = (p["CONSULTORIO"] || "").toUpperCase();
                     const turnoFila = (p["TURNO"] || "").toUpperCase();
 
@@ -348,22 +329,36 @@
                     const cumpleTurno = (turnoSel === "TODOS" || turnoSel === "" || turnoFila.includes(turnoSel.toUpperCase()));
 
                     if (enRangoFecha && cumpleCons && cumpleTurno) {
-                        // Compatibilidad multi-clave para números telefónicos (TELFONO-1, TELFORNO-1, TELEFONO-1)
+                        // Extracción de teléfonos segura para evitar duplicados (se busca el primer número válido de 9+ dígitos)
                         const t1 = (p["TELFORNO-1"] || p["TELFONO-1"] || p["TELEFONO-1"] || p["CELULAR"] || "").toString();
                         const t2 = (p["TELFORNO-2"] || p["TELFONO-2"] || p["TELEFONO-2"] || p["CELULAR_2"] || "").toString();
-                        const combinedTels = `${t1},${t2}`;
-
-                        const listaCels = combinedTels.split(/[,\/-]/);
-                        listaCels.forEach(celRaw => {
-                            const cel = celRaw.trim().replace(/\D/g, "");
-                            if (cel.length >= 9) {
-                                listaProcesada.push({ 
-                                    ...p, 
-                                    CELULAR: cel,
-                                    FECHA_CITA_MOSTRAR: fechaFilaRaw
-                                });
+                        
+                        let telefonoValido = "";
+                        let cels1 = t1.split(/[,\/-]/);
+                        for (let c of cels1) {
+                            let limpio = c.trim().replace(/\D/g, "");
+                            if (limpio.length >= 9) { telefonoValido = limpio; break; }
+                        }
+                        if (!telefonoValido) {
+                            let cels2 = t2.split(/[,\/-]/);
+                            for (let c of cels2) {
+                                let limpio = c.trim().replace(/\D/g, "");
+                                if (limpio.length >= 9) { telefonoValido = limpio; break; }
                             }
-                        });
+                        }
+
+                        // Solo se agrega si tiene un número válido (evita registros sin WhatsApp)
+                        if (telefonoValido.length >= 9) {
+                            let gpsVal = (p["GPS"] || "").toString().trim();
+                            let gpsDisplay = (gpsVal && gpsVal !== "0" && gpsVal !== "-") ? gpsVal : "No tiene";
+
+                            listaProcesada.push({ 
+                                ...p, 
+                                CELULAR: telefonoValido,
+                                FECHA_CITA_MOSTRAR: fechaFilaRaw,
+                                GPS_STATUS: gpsDisplay
+                            });
+                        }
                     }
                 });
 
@@ -403,11 +398,10 @@
                 <div class="info">
                     <b>👶 ${p["NOMBRE"]} ${edadDisplay}</b>
                     <span>📅 Cita: ${fechaCita} | ⏰ ${p["TURNO"]}</span>
-                    <span style="font-size:10px; color:var(--primary); font-weight: 600;">📍 ${p["CONSULTORIO"]} | DNI: ${p["DNI"] || "N/A"}</span>
+                    <span style="font-size:10px; color:var(--primary); font-weight: 600;">📍 ${p["CONSULTORIO"]} | DNI: ${p["DNI"] || "N/A"} | GPS: ${p["GPS_STATUS"]}</span>
                 </div>
                 <div class="actions">
                     <a href="#" class="btn-send" onclick="enviarIndividual(${i})">💬 ENVIAR</a>
-                    <button class="btn-error" onclick="reportarError(${i})">❌ SIN WA</button>
                 </div>
             `;
             div.appendChild(item);
@@ -423,17 +417,16 @@
         const edadDisplay = p["EDAD"] ? ` (${p["EDAD"]})` : "";
         const fechaCita = p["FECHA_CITA_MOSTRAR"] || p["FECHA_CITA"] || p["FECHA DE CITA"];
         
-        const msg = `Hola, le saludamos del Centro de Salud *Castillo Grande*. Le recordamos la cita de *${p["NOMBRE"]}*${edadDisplay} para el día *${fechaCita}* en el turno *${p["TURNO"]}* (${p["CONSULTORIO"]}). RECUERDE que ahora puedes obtener tu carnet virtual por el grupo de whatsapp https://chat.whatsapp.com/FELCvT889zo265G8LkVkPY ${extra ? '\n\n📌 *Nota:* ' + extra : ''}`;
+        let mensajeGPS = "";
+        if (p["GPS_STATUS"] === "No tiene") {
+            mensajeGPS = `\n\n📍 *IMPORTANTE:* Notamos que no cuenta con su ubicación registrada. Por favor, actualizar los datos de ubicación de su domicilio al WhatsApp *956113989*.`;
+        }
+        
+        const msg = `Hola, le saludamos del Centro de Salud *Castillo Grande*. Le recordamos la cita de *${p["NOMBRE"]}*${edadDisplay} para el día *${fechaCita}* en el turno *${p["TURNO"]}* (${p["CONSULTORIO"]}). RECUERDE que ahora puedes obtener tu carnet virtual por el grupo de whatsapp https://chat.whatsapp.com/FELCvT889zo265G8LkVkPY${mensajeGPS}${extra ? '\n\n📌 *Nota:* ' + extra : ''}`;
         return `https://api.whatsapp.com/send?phone=${cel}&text=${encodeURIComponent(msg)}`;
     }
 
     function enviarIndividual(i) { window.open(generarLink(i), '_blank'); marcarVisto(i); }
-
-    function reportarError(i) {
-        const cel = pacientesGlobal[i]["CELULAR"];
-        fetch(`${SCRIPT_CITAS}?errorNum=${cel}`, { mode: 'no-cors' });
-        marcarVisto(i, true);
-    }
 
     function prepararSiguiente() {
         const btn = document.getElementById('btnSiguiente');
@@ -447,11 +440,11 @@
 
     function marcarSiguiente() { marcarVisto(indiceActual); indiceActual++; setTimeout(prepararSiguiente, 800); }
 
-    function marcarVisto(i, err = false) {
+    function marcarVisto(i) {
         const row = document.getElementById(`pac-row-${i}`);
         if(row) {
             row.style.opacity = "0.35";
-            row.style.background = err ? "#fff0f0" : "#f5f5f5";
+            row.style.background = "#f5f5f5";
             const b = row.querySelector('.btn-send');
             if(b) b.style.pointerEvents = "none";
         }
