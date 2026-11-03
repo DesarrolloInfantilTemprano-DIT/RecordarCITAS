@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RECUERDAME 🧸</title>
+    <title>RECORDAR CITAS 🧸</title>
     <style>
         :root { 
             --primary: #3B5998; 
@@ -458,12 +458,14 @@
     let pacientesGlobal = [];
     let indiceActual = 0;
     let numerosEnviadosHistorial = [];
+    let fechaInicioGlobal = "";
+    let fechaFinGlobal = "";
 
     let listaConsultoriosAdmin = [];
     let listaSectoresAdmin = [];
 
     let consultorioSeleccionado = "TODOS";
-    let sectoresSeleccionados = []; // Múltiples sectores seleccionados
+    let sectoresSeleccionados = []; 
     let tipoModalActual = ""; 
 
     window.onload = async () => {
@@ -543,7 +545,6 @@
                 }
             });
         } else {
-            // SECTORES (MÚLTIPLES)
             const itemTodos = document.createElement('div');
             itemTodos.className = `modal-item`;
             const isTodosChecked = sectoresSeleccionados.length === 0 || sectoresSeleccionados.includes("TODOS");
@@ -577,7 +578,6 @@
                             chk.checked = !chk.checked;
                         }
                         const chk = itemDiv.querySelector('input');
-                        // Remover "TODOS" si se selecciona un sector específico
                         sectoresSeleccionados = sectoresSeleccionados.filter(s => s !== "TODOS");
                         
                         if (chk.checked) {
@@ -624,6 +624,9 @@
         const turnoSel = document.getElementById('filtroTurno').value;
 
         if (!fIniRaw || !fFinRaw) return alert("Por favor, selecciona el rango de fechas 📅");
+
+        fechaInicioGlobal = fIniRaw;
+        fechaFinGlobal = fFinRaw;
 
         btn.innerText = "✨ BUSCANDO... 🚀";
         btn.disabled = true;
@@ -771,7 +774,7 @@
             mensajeGPS = `\n\n📍 *IMPORTANTE:* Notamos que no cuenta con su ubicación registrada. Por favor, actualizar los datos de ubicación de su domicilio al WhatsApp *956113989*.`;
         }
         
-        const msg = `Le saludamos del Centro de Salud *Castillo Grande*. Le recordamos la cita de *${p["NOMBRE"]}*${edadDisplay} para el día *${fechaCita}* en el turno *${p["TURNO"]}* (${p["CONSULTORIO"]}). Le invitamos a ser parte del grupo de whatsapp https://chat.whatsapp.com/FELCvT889zo265G8LkVkPY${mensajeGPS}${extra ? '\n\n📌 *Nota:* ' + extra : ''}`;
+        const msg = `Le saludamos del Centro de Salud *Castillo Grande*. Le recordamos la cita de *${p["NOMBRE"]}*${edadDisplay} para el día *${fechaCita}* en el turno *${p["TURNO"]}* (${p["CONSULTORIO"]}). RECUERDE que ahora puedes obtener tu carnet virtual por el grupo de whatsapp https://chat.whatsapp.com/FELCvT889zo265G8LkVkPY${mensajeGPS}${extra ? '\n\n📌 *Nota:* ' + extra : ''}`;
         return `https://api.whatsapp.com/send?phone=${cel}&text=${encodeURIComponent(msg)}`;
     }
 
@@ -799,7 +802,6 @@
             btn.innerText = `🚀 SIGUIENTE: ${nom.split(' ')[0]} 👶`;
         } else { 
             btn.style.display = 'none';
-            // Se terminó de enviar a todos los citados -> Activar Botón de Reporte Administrador
             if (pacientesGlobal.length > 0) {
                 btnReporte.style.display = 'block';
             }
@@ -827,6 +829,7 @@
         let totalEnviados = numerosEnviadosHistorial.length;
         
         let reporteMsg = `📊 *REPORTE DE CITAS ENVIADAS - CENTRO DE SALUD CASTILLO GRANDE*\n\n`;
+        reporteMsg += `📅 *Rango de Fechas:* Del ${fechaInicioGlobal} al ${fechaFinGlobal}\n`;
         reporteMsg += `📌 *Total de mensajes enviados:* ${totalEnviados}\n\n`;
         reporteMsg += `📱 *Lista de números atendidos:*\n`;
         
@@ -834,7 +837,7 @@
             reporteMsg += `${index + 1}. +${num}\n`;
         });
 
-        reporteMsg += `\n✨ Consolidado generado automáticamente desde el sistema de Recordar Citas 🧸`;
+        reporteMsg += `\n✨ Consolidado Recordar Citas 🧸`;
 
         const urlReporte = `https://api.whatsapp.com/send?phone=${adminCel}&text=${encodeURIComponent(reporteMsg)}`;
         window.open(urlReporte, '_blank');
