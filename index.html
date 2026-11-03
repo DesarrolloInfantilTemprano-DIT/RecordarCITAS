@@ -771,7 +771,7 @@
             mensajeGPS = `\n\n📍 *IMPORTANTE:* Notamos que no cuenta con su ubicación registrada. Por favor, actualizar los datos de ubicación de su domicilio al WhatsApp *956113989*.`;
         }
         
-        const msg = `Le saludamos del Centro de Salud *Castillo Grande*. Le recordamos la cita de *${p["NOMBRE"]}*${edadDisplay} para el día *${fechaCita}* en el turno *${p["TURNO"]}* (${p["CONSULTORIO"]}). RECUERDE que ahora puedes obtener tu carnet virtual por el grupo de whatsapp https://chat.whatsapp.com/FELCvT889zo265G8LkVkPY${mensajeGPS}${extra ? '\n\n📌 *Nota:* ' + extra : ''}`;
+        const msg = `Le saludamos del Centro de Salud *Castillo Grande*. Le recordamos la cita de *${p["NOMBRE"]}*${edadDisplay} para el día *${fechaCita}* en el turno *${p["TURNO"]}* (${p["CONSULTORIO"]}). Le invitamos a ser parte del grupo de whatsapp https://chat.whatsapp.com/FELCvT889zo265G8LkVkPY${mensajeGPS}${extra ? '\n\n📌 *Nota:* ' + extra : ''}`;
         return `https://api.whatsapp.com/send?phone=${cel}&text=${encodeURIComponent(msg)}`;
     }
 
